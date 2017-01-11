@@ -54,7 +54,7 @@ public class SLAConsumerAndProvider {
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V1.5  Novembre 2016");
+		log.info("Batch SLAConsumerAndProvider V1.6  Gennaio 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info("23.11.2016 inserito controllo nel caso in cui non vengano passati tutti i valori presenti nei file in modo che non venga generata l'eccezzione indice non valido"
