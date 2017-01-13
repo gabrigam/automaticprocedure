@@ -31,6 +31,7 @@ import com.isp.wsrr.utility.WSRRUtility;
  * di errore
  * 241016 aggiunta la gestione ambito e ambito descrizione
  * 16/11/2015 aggiunto controllo esistenza file
+ * 120117 metto trim sull matricola che mi ritorna dal file myapm
  */
 
 public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider {
@@ -51,7 +52,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		nbplog.info("Batch SSAAcronimoBusinessApplication V1.5 Novembre  2016");
+		nbplog.info("Batch SSAAcronimoBusinessApplication V1.6 Gennaio  2017");
 		nbplog.info("aggiunti ambito e ambito descrizione per oggetti");
 		nbplog.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		nbplog.info(
@@ -227,6 +228,10 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 	private boolean createSSAToAcronimoAssociation(ConnectionDataBeanSingleton cdb, String ssa, String ssaDescr,
 			String acronimo, String acronimoDescr,String ambito,String ambito_descr, String[] param, int recNum, HashMap matricoleHash) {
 
+		if (recNum==4) {
+			int g=0;
+		}
+		
 		boolean result = false;
 		boolean checkObject = false;
 		boolean checkObjectAcronimo = false;
@@ -280,14 +285,18 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 					String resp_funz_nom_new = "";
 					String resp_funz_nom_current = "";
 					try {
-						resp_funz_nom_current = param[37];
-						if (param[37] != null && param[37].length() >= 2) {
+						if (param[37].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[37] + " contains blank character/s");
+						}
+						resp_funz_nom_current = param[37].trim();
+						if (param[37].trim() != null && param[37].trim().length() >= 2) {
 
-							resp_funz_nom_new = (String) matricoleHash.get(param[37].substring(1, param[37].length()));
+							resp_funz_nom_new = (String) matricoleHash.get(param[37].trim().substring(1, param[37].trim().length()));
 
 							if (resp_funz_nom_new == null) {
 
-								nbplog.info(recNum + " matricola - " + param[37].substring(1, param[37].length())
+								nbplog.info(recNum + " matricola - " + param[37].trim().substring(1, param[37].trim().length())
 										+ " no match set RESP_FUNZIONALE_NOMINATIVO = blank");
 								resp_funz_nom_new = "";
 							}
@@ -300,15 +309,22 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 
 					String resp_tecn_nom_new = "";
 					String resp_tecn_nom_current = "";
+					String resp_uff_matricola="";
+					String resp_serv_matricola="";
+					String resp_attiv_matricola="";
 					try {
-						resp_tecn_nom_current = param[38];
-						if (param[38] != null && param[38].length() >= 2) {
+						if (param[38].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[38] + " contains blank character/s");
+						}
+						resp_tecn_nom_current = param[38].trim();
+						if (param[38].trim() != null && param[38].trim().length() >= 2) {
 
-							resp_tecn_nom_new = (String) matricoleHash.get(param[38].substring(1, param[38].length()));
+							resp_tecn_nom_new = (String) matricoleHash.get(param[38].trim().substring(1, param[38].trim().length()));
 
 							if (resp_tecn_nom_new == null) {
 
-								nbplog.info(recNum + " matricola - " + param[38].substring(1, param[38].length())
+								nbplog.info(recNum + " matricola - " + param[38].trim().substring(1, param[38].trim().length())
 										+ " no match set RESP_TECNICO_NOMINATIVO = blank");
 								resp_tecn_nom_new = "";
 							}
@@ -319,6 +335,39 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 						resp_tecn_nom_current = "";
 					}
 
+					try {
+						resp_uff_matricola=param[22].trim();
+						if (param[22].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[22] + " contains blank character/s");
+						}
+					}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+						nbplog.info(recNum + " - ale63_RESP_UFFICIO_MATRICOLA not defined in input file assumed blank");
+						resp_uff_matricola= "";
+					}
+					
+					try {
+						resp_serv_matricola=param[26].trim();
+						if (param[26].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[26] + " contains blank character/s");
+						}
+					}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+						nbplog.info(recNum + " - ale63_RESP_SERVIZIO_MATRICOLA not defined in input file assumed blank");
+						resp_serv_matricola= "";
+					}
+					
+					try {
+						resp_attiv_matricola=param[18].trim();
+						if (param[18].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[18] + " contains blank character/s");
+						}
+					}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+						nbplog.info(recNum + " - ale63_RESP_ATTIVITA_MATRICOLA not defined in input file assumed blank");
+						resp_attiv_matricola= "";
+					}
+					
 					// xmlOEnvelope =
 					// wsrrenvelopes.createOrganizationXMLDataExtended(acronimo,
 					// acronimoDescr, param[22],
@@ -327,9 +376,13 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 					// param[18], resp_tecn_nom_new,
 					// param[37], param[26], param[23], null, "ACRONIMO");
 
-					xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(acronimo, acronimoDescr, param[22],
-							param[2], resp_funz_nom_new, param[27], resp_tecn_nom_current, param[19], param[18],
-							resp_tecn_nom_new, resp_funz_nom_current, param[26], param[23], null, "ACRONIMO",ambito,ambito_descr);
+					//xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(acronimo, acronimoDescr, param[22].trim(),
+					//		param[2], resp_funz_nom_new, param[27], resp_tecn_nom_current, param[19], param[18].trim(),
+					//		resp_tecn_nom_new, resp_funz_nom_current, param[26].trim(), param[23], null, "ACRONIMO",ambito,ambito_descr);
+					
+					xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(acronimo, acronimoDescr, resp_uff_matricola,
+							param[2], resp_funz_nom_new, param[27], resp_tecn_nom_current, param[19], resp_attiv_matricola,
+							resp_tecn_nom_new, resp_funz_nom_current, resp_serv_matricola, param[23], null, "ACRONIMO",ambito,ambito_descr);
 
 					bsrURIacronimo = wsrrutility.createWSRRGenericObject(xmlOEnvelope, "POST", url, user, password);
 
@@ -398,242 +451,302 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 					// [22] ale63_RESP_UFFICIO_MATRICOLA
 
 					try {
-						fromFile = param[22];
+						if (param[22].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[22] + " contains blank character/s");
+						}
+						fromFile = param[22].trim();
+
+						if (!resp_uff_matr.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_UFFICIO_MATRICOLA",
+									fromFile, url, user, password)) {
+								nbplog.error(+recNum + " - "
+										+ "Error : on updating ale63_RESP_UFFICIO_MATRICOLA for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_UFFICIO_MATRICOLA - value before = " + resp_uff_matr
+										+ " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_UFFICIO_MATRICOLA for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 22 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_uff_matr.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_UFFICIO_MATRICOLA",
-								fromFile, url, user, password)) {
-							nbplog.error(+recNum + " - "
-									+ "Error : on updating ale63_RESP_UFFICIO_MATRICOLA for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_UFFICIO_MATRICOLA - value before = " + resp_uff_matr
-									+ " new value = " + fromFile);
-					}
 
 					// [2] ale63_CODICE_SISTEMA_APPLICATIVO
 
 					try {
 						fromFile = param[2];
+						if (!codice_sist_appl.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
+									"ale63_CODICE_SISTEMA_APPLICATIVO", fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_CODICE_SISTEMA_APPLICATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_CODICE_SISTEMA_APPLICATIVO - value before = "
+										+ codice_sist_appl + " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_CODICE_SISTEMA_APPLICATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 2 is not present or empty (columns start from 0)");
 					}
 
-					if (!codice_sist_appl.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
-								"ale63_CODICE_SISTEMA_APPLICATIVO", fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_CODICE_SISTEMA_APPLICATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_CODICE_SISTEMA_APPLICATIVO - value before = "
-									+ codice_sist_appl + " new value = " + fromFile);
-					}
 
 					// ale63_RESP_FUNZIONALE_NOMINATIVO [ricalcolato]
 
 					String resp_funz_nom_new = "";
+					//System.out.println("ZZZZZ "+param[37]);
 					try {
-						if (param[37] != null && param[37].length() >= 2) {
+						if (param[37].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[37] + " contains blank character/s");
+						}
+						if (param[37].trim() != null && param[37].trim().length() >= 2) {
 
-							resp_funz_nom_new = (String) matricoleHash.get(param[37].substring(1, param[37].length()));
+							resp_funz_nom_new = (String) matricoleHash.get(param[37].trim().substring(1, param[37].trim().length()));
 
 							if (resp_funz_nom_new == null) {
-								nbplog.info(recNum + " matricola - " + param[37].substring(1, param[37].length())
+								nbplog.info(recNum + " matricola - " + param[37].trim().substring(1, param[37].trim().length())
 										+ " no match assume RESP_FUNZIONALE_NOMINATIVO = blank");
 								resp_funz_nom_new = "";
 							}
 						}
+						
+						if (!resp_funz_nom.equals(resp_funz_nom_new)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
+									"ale63_RESP_FUNZIONALE_NOMINATIVO", resp_funz_nom_new, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_FUNZIONALE_NOMINATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_FUNZIONALE_NOMINATIVO - value before = "
+										+ resp_funz_nom + " new value = " + resp_funz_nom_new);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						nbplog.info(recNum + " - RESP_FUNZIONALE_NOMINATIVO not defined in input file assumed blank");
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_FUNZIONALE_NOMINATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 37 is not present or empty (columns start from 0)");
+						
 					}
 
-					if (!resp_funz_nom.equals(resp_funz_nom_new)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
-								"ale63_RESP_FUNZIONALE_NOMINATIVO", resp_funz_nom_new, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_FUNZIONALE_NOMINATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_FUNZIONALE_NOMINATIVO - value before = "
-									+ resp_funz_nom + " new value = " + resp_funz_nom_new);
-					}
+
 
 					// [27] ale63_RESP_SERVIZIO_NOMINATIVO
 
 					try {
 						fromFile = param[27];
+						if (!resp_serv_nom.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
+									"ale63_RESP_SERVIZIO_NOMINATIVO", fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_SERVIZIO_NOMINATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_SERVIZIO_NOMINATIVO - value before = "
+										+ resp_serv_nom + " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_SERVIZIO_NOMINATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 27 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_serv_nom.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
-								"ale63_RESP_SERVIZIO_NOMINATIVO", fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_SERVIZIO_NOMINATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_SERVIZIO_NOMINATIVO - value before = "
-									+ resp_serv_nom + " new value = " + fromFile);
-					}
+
 
 					// [38] ale63_RESP_TECNICO_MATRICOLA
 
 					try {
-						fromFile = param[38];
+						if (param[38].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[38] + " contains blank character/s");
+						}
+						fromFile = param[38].trim();
+						if (!resp_tecn_matr.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_TECNICO_MATRICOLA",
+									fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_TECNICO_MATRICOLA for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_TECNICO_MATRICOLA - value before = " + resp_tecn_matr
+										+ " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_TECNICO_MATRICOLA for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 38 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_tecn_matr.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_TECNICO_MATRICOLA",
-								fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_TECNICO_MATRICOLA for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_TECNICO_MATRICOLA - value before = " + resp_tecn_matr
-									+ " new value = " + fromFile);
-					}
 
 					// [19] ale63_RESP_ATTIVITA_NOMINATIVO
 
 					try {
 						fromFile = param[19];
+						if (!resp_att_nom.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
+									"ale63_RESP_ATTIVITA_NOMINATIVO", fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_ATTIVITA_NOMINATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_ATTIVITA_NOMINATIVO - value before = " + resp_att_nom
+										+ " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_ATTIVITA_NOMINATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 19 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_att_nom.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
-								"ale63_RESP_ATTIVITA_NOMINATIVO", fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_ATTIVITA_NOMINATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_ATTIVITA_NOMINATIVO - value before = " + resp_att_nom
-									+ " new value = " + fromFile);
-					}
+
 
 					// [18] ale63_RESP_ATTIVITA_MATRICOLA
 
 					try {
-						fromFile = param[18];
-					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
-					}
-					if (!resp_att_matr.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_ATTIVITA_MATRICOLA",
-								fromFile, url, user, password)) {
+						if (param[18].contains(" ")){
 							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_ATTIVITA_MATRICOLA for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_ATTIVITA_MATRICOLA - value before = " + resp_att_matr
-									+ " new value = " + fromFile);
+									+ param[18] + " contains blank character/s");
+						}
+						fromFile = param[18].trim();
+						if (!resp_att_matr.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_ATTIVITA_MATRICOLA",
+									fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_ATTIVITA_MATRICOLA for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_ATTIVITA_MATRICOLA - value before = " + resp_att_matr
+										+ " new value = " + fromFile);
+						}
+					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_ATTIVITA_MATRICOLA for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 18 is not present or empty (columns start from 0)");
 					}
+
 
 					// ale63_RESP_TECNICO_NOMINATIVO [ricalcolato]
 
 					String resp_tecn_nom_new = "";
 					try {
-						if (param[38] != null && param[38].length() >= 2) {
+						if (param[38].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[38] + " contains blank character/s");
+						}
+						if (param[38].trim() != null && param[38].trim().length() >= 2) {
 
-							resp_tecn_nom_new = (String) matricoleHash.get(param[38].substring(1, param[38].length()));
+							resp_tecn_nom_new = (String) matricoleHash.get(param[38].trim().substring(1, param[38].trim().length()));
 
 							if (resp_tecn_nom_new == null) {
-								nbplog.info(recNum + " matricola - " + param[38].substring(1, param[38].length())
+								nbplog.info(recNum + " matricola - " + param[38].trim().substring(1, param[38].trim().length())
 										+ " no match set RESP_TECNICO_NOMINATIVO = blank");
 								resp_tecn_nom_new = "";
 							}
 
 						}
+						if (!resp_tecn_nom.equals(resp_tecn_nom_new)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_TECNICO_NOMINATIVO",
+									resp_tecn_nom_new, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_TECNICO_NOMINATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_TECNICO_NOMINATIVO - value before = " + resp_tecn_nom
+										+ " new value = " + resp_tecn_nom_new);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						nbplog.info(recNum + " - RESP_TECNICO_NOMINATIVO not defined in input file assumed blank");
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_TECNICO_NOMINATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 38 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_tecn_nom.equals(resp_tecn_nom_new)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_TECNICO_NOMINATIVO",
-								resp_tecn_nom_new, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_TECNICO_NOMINATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_TECNICO_NOMINATIVO - value before = " + resp_tecn_nom
-									+ " new value = " + resp_tecn_nom_new);
-					}
+
 
 					// [37] ale63_RESP_FUNZIONALE_MATRICOLA
 
 					try {
-						fromFile = param[37];
+						if (param[37].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[37] + " contains blank character/s");
+						}
+						fromFile = param[37].trim();
+						if (!resp_funz_matr.equals(fromFile)) { // before
+							// wasparam[36]
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
+									"ale63_RESP_FUNZIONALE_MATRICOLA", fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_FUNZIONALE_MATRICOLA for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_FUNZIONALE_MATRICOLA - value before = "
+										+ resp_funz_matr + " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for :  ale63_RESP_FUNZIONALE_MATRICOLA for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 37 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_funz_matr.equals(fromFile)) { // before
-						// wasparam[36]
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo,
-								"ale63_RESP_FUNZIONALE_MATRICOLA", fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_FUNZIONALE_MATRICOLA for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_FUNZIONALE_MATRICOLA - value before = "
-									+ resp_funz_matr + " new value = " + fromFile);
-					}
+
 
 					// [26] ale63_RESP_SERVIZIO_MATRICOLA
 
 					try {
-						fromFile = param[26];
+						if (param[26].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[26] + " contains blank character/s");
+						}
+						fromFile = param[26].trim();
+						if (!resp_serv_matr.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_SERVIZIO_MATRICOLA",
+									fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_SERVIZIO_MATRICOLA for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_SERVIZIO_MATRICOLA - value before = "
+										+ resp_serv_matr + " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
+						nbplog.error(+recNum + " - "
+								+ "No update for :  ale63_RESP_SERVIZIO_MATRICOLA for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 26 is not present or empty (columns start from 0)");
 					}
 
-					if (!resp_serv_matr.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_SERVIZIO_MATRICOLA",
-								fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_SERVIZIO_MATRICOLA for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_SERVIZIO_MATRICOLA - value before = "
-									+ resp_serv_matr + " new value = " + fromFile);
-					}
+			
 
 					// [23] ale63_RESP_UFFICIO_NOMINATIVO
 
 					try {
 						fromFile = param[23];
+						if (!resp_uff_nom.equals(fromFile)) {
+							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_UFFICIO_NOMINATIVO",
+									fromFile, url, user, password)) {
+								nbplog.error(recNum + " - "
+										+ "Error : on updating ale63_RESP_UFFICIO_NOMINATIVO for object type Organization : "
+										+ acronimo + " " + bsrURIacronimo);
+							} else
+								nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
+										+ " changed field - ale63_RESP_UFFICIO_NOMINATIVO - value before = " + resp_uff_nom
+										+ " new value = " + fromFile);
+						}
 					} catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-						fromFile = "";
-					}
-
-					if (!resp_uff_nom.equals(fromFile)) {
-						if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIacronimo, "ale63_RESP_UFFICIO_NOMINATIVO",
-								fromFile, url, user, password)) {
-							nbplog.error(recNum + " - "
-									+ "Error : on updating ale63_RESP_UFFICIO_NOMINATIVO for object type Organization : "
-									+ acronimo + " " + bsrURIacronimo);
-						} else
-							nbplog.info(recNum + " - " + "Acronimo : " + bsrURIacronimo
-									+ " changed field - ale63_RESP_UFFICIO_NOMINATIVO - value before = " + resp_uff_nom
-									+ " new value = " + fromFile);
+						nbplog.error(+recNum + " - "
+								+ "No update for : ale63_RESP_UFFICIO_NOMINATIVO for object type Organization : "
+								+ acronimo + " " + bsrURIacronimo+" because column 23 is not present or empty (columns start from 0)");
 					}
 
 					// description
@@ -686,10 +799,75 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 				if (!stepError) { // no prevoius errors in creation
 
 					if (bsrURIssa == null) {
-
-						xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(ssa, ssaDescr, param[22],
-								param[2], param[13], param[27], param[14], param[19], param[18], param[15], param[12],
-								param[26], param[23], bsrURIacronimo, "SSA",ambito,ambito_descr);
+						
+						String resp_uff_matricola="";
+						String resp_attiv_matricola="";
+						String resp_serv_matricola="";
+						String resp_tecnico_matricola="";
+						String resp_funz_matricola="";
+						
+						try {
+							resp_uff_matricola=param[22].trim();
+							if (param[22].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[22] + " contains blank character/s");
+							}
+						}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.info(recNum + " - ale63_RESP_UFFICIO_MATRICOLA not defined in input file assumed blank");
+							resp_uff_matricola= "";
+						}
+						
+						try {
+							resp_serv_matricola=param[26].trim();
+							if (param[26].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[26] + " contains blank character/s");
+							}
+						}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.info(recNum + " - ale63_RESP_SERVIZIO_MATRICOLA not defined in input file assumed blank");
+							resp_serv_matricola= "";
+						}
+						
+						try {
+							resp_attiv_matricola=param[18].trim();
+							if (param[18].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[18] + " contains blank character/s");
+							}
+						}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.info(recNum + " - ale63_RESP_ATTIVITA_MATRICOLA not defined in input file assumed blank");
+							resp_attiv_matricola= "";
+						}
+		                
+						try {
+							resp_tecnico_matricola=param[14].trim();
+							if (param[14].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[14] + " contains blank character/s");
+							}
+						}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.info(recNum + " - ale63_RESP_TECNICO_MATRICOLA not defined in input file assumed blank");
+							resp_tecnico_matricola= "";
+						}
+						
+						try {
+							resp_funz_matricola=param[12].trim();
+							if (param[12].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[12] + " contains blank character/s");
+							}
+						}catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.info(recNum + " - ale63_RESP_FUNZIONALE_MATRICOLA not defined in input file assumed blank");
+							resp_funz_matricola= "";
+						}
+						
+						//xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(ssa, ssaDescr, param[22].trim(),
+						//		param[2], param[13], param[27], param[14].trim(), param[19], param[18].trim(), param[15], param[12].trim(),
+						//		param[26].trim(), param[23], bsrURIacronimo, "SSA",ambito,ambito_descr);
+						
+						xmlOEnvelope = wsrrenvelopes.createOrganizationXMLDataExtendedAmbito(ssa, ssaDescr, resp_uff_matricola,
+								param[2], param[13], param[27], resp_tecnico_matricola, param[19], resp_attiv_matricola, param[15], resp_funz_matricola,
+								resp_serv_matricola, param[23], bsrURIacronimo, "SSA",ambito,ambito_descr);
 
 						bsrURIssa = wsrrutility.createWSRRGenericObject(xmlOEnvelope, "POST", url, user, password);
 
@@ -757,9 +935,14 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 						String resp_uff_nom = WSRRUtility.getObjectValueFromJSONArrayData((JSONArray) dett.get(0),
 								"ale63_RESP_UFFICIO_NOMINATIVO");
 
-						if (!resp_uff_matr.equals(param[22])) {
+						try{
+							if (param[22].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[22] + " contains blank character/s");
+							}
+						if (!resp_uff_matr.equals(param[22].trim())) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_UFFICIO_MATRICOLA",
-									param[22], url, user, password)) {
+									param[22].trim(), url, user, password)) {
 
 								nbplog.error(recNum + " - "
 										+ "Error : on updating ale63_RESP_UFFICIO_MATRICOLA for object type Organization : "
@@ -767,9 +950,15 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 							} else
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_UFFICIO_MATRICOLA - value before = "
-										+ resp_uff_matr + " new value = " + param[22]);
-						}
+										+ resp_uff_matr + " new value = " + param[22].trim());
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
 
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_UFFICIO_MATRICOLA for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 22 is not present or empty (columns start from 0)");							
+						}
+						try {
 						if (!codice_sist_appl.equals(param[2])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa,
 									"ale63_CODICE_SISTEMA_APPLICATIVO", param[2], url, user, password)) {
@@ -781,8 +970,14 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_CODICE_SISTEMA_APPLICATIVO - value before = "
 										+ codice_sist_appl + " new value = " + param[2]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_CODICE_SISTEMA_APPLICATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 2 is not present or empty (columns start from 0)");
 						}
 
+						try{
 						if (!resp_funz_nom.equals(param[13])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa,
 									"ale63_RESP_FUNZIONALE_NOMINATIVO", param[13], url, user, password)) {
@@ -794,8 +989,14 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_FUNZIONALE_NOMINATIVO - value before = "
 										+ resp_funz_nom + " new value = " + param[13]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_FUNZIONALE_NOMINATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 13 is not present or empty (columns start from 0)");						
 						}
 
+						try{
 						if (!resp_serv_nom.equals(param[27])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_SERVIZIO_NOMINATIVO",
 									param[27], url, user, password)) {
@@ -807,11 +1008,25 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_SERVIZIO_NOMINATIVO - value before = "
 										+ resp_serv_nom + " new value = " + param[27]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+						nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_SERVIZIO_NOMINATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 27 is not present or empty (columns start from 0)");							
 						}
 
-						if (!resp_tecn_matr.equals(param[14])) {
+						try{
+							if (param[14].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[14] + " contains blank character/s");
+							}
+							if (param[14].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[14] + " contains blank character/s");
+							}
+						if (!resp_tecn_matr.equals(param[14].trim())) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_TECNICO_MATRICOLA",
-									param[14], url, user, password)) {
+									param[14].trim(), url, user, password)) {
 
 								nbplog.error(recNum + " - "
 										+ "Error : on updating ale63_RESP_TECNICO_MATRICOLA for object type Organization : "
@@ -819,9 +1034,15 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 							} else
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_TECNICO_MATRICOLA - value before = "
-										+ resp_tecn_matr + " new value = " + param[14]);
+										+ resp_tecn_matr + " new value = " + param[14].trim());
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_TECNICO_MATRICOLA for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 14 is not present or empty (columns start from 0)");
 						}
-
+                        
+						try{
 						if (!resp_att_nom.equals(param[19])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_ATTIVITA_NOMINATIVO",
 									param[19], url, user, password)) {
@@ -833,11 +1054,21 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_ATTIVITA_NOMINATIVO - value before = "
 										+ resp_att_nom + " new value = " + param[19]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_ATTIVITA_NOMINATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 19 is not present or empty (columns start from 0)");							
 						}
 
-						if (!resp_att_matr.equals(param[18])) {
+						try{
+							if (param[18].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[18] + " contains blank character/s");
+							}
+						if (!resp_att_matr.equals(param[18].trim())) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_ATTIVITA_MATRICOLA",
-									param[18], url, user, password)) {
+									param[18].trim(), url, user, password)) {
 
 								nbplog.error(recNum + " - "
 										+ "Error : on updating ale63_RESP_ATTIVITA_MATRICOLA for object type Organization : "
@@ -845,9 +1076,15 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 							} else
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_ATTIVITA_MATRICOLA - value before = "
-										+ resp_att_matr + " new value = " + param[18]);
+										+ resp_att_matr + " new value = " + param[18].trim());
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_ATTIVITA_MATRICOLA for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 18 is not present or empty (columns start from 0)");							
 						}
 
+						try{
 						if (!resp_tecn_nom.equals(param[15])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_TECNICO_NOMINATIVO",
 									param[15], url, user, password)) {
@@ -859,11 +1096,25 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_TECNICO_NOMINATIVO - value before = "
 										+ resp_tecn_nom + " new value = " + param[15]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_TECNICO_NOMINATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 15 is not present or empty (columns start from 0)");							
 						}
 
-						if (!resp_funz_matr.equals(param[12])) {
+						try {
+							if (param[12].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[12] + " contains blank character/s");
+							}
+						if (param[12].contains(" ")){
+							nbplog.error(recNum + " - "
+									+ param[12] + " contains blank character/s");
+						}
+						if (!resp_funz_matr.equals(param[12].trim())) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa,
-									"ale63_RESP_FUNZIONALE_MATRICOLA", param[12], url, user, password)) {
+									"ale63_RESP_FUNZIONALE_MATRICOLA", param[12].trim(), url, user, password)) {
 
 								nbplog.error(recNum + " - "
 										+ "Error : on updating ale63_RESP_FUNZIONALE_MATRICOLA for object type Organization : "
@@ -871,12 +1122,22 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 							} else
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_FUNZIONALE_MATRICOLA - value before = "
-										+ resp_funz_matr + " new value = " + param[12]);
+										+ resp_funz_matr + " new value = " + param[12].trim());
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_FUNZIONALE_MATRICOLA for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 12 is not present or empty (columns start from 0)");							
 						}
 
-						if (!resp_serv_matr.equals(param[26])) {
+						try{
+							if (param[26].contains(" ")){
+								nbplog.error(recNum + " - "
+										+ param[26] + " contains blank character/s");
+							}
+						if (!resp_serv_matr.equals(param[26].trim())) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_SERVIZIO_MATRICOLA",
-									param[26], url, user, password)) {
+									param[26].trim(), url, user, password)) {
 
 								nbplog.error(recNum + " - "
 										+ "Error : on updating ale63_RESP_SERVIZIO_MATRICOLA for object type Organization : "
@@ -884,9 +1145,16 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 							} else
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_SERVIZIO_MATRICOLA - value before = "
-										+ resp_serv_matr + " new value = " + param[26]);
+										+ resp_serv_matr + " new value = " + param[26].trim());
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_SERVIZIO_MATRICOLA for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 26 is not present or empty (columns start from 0)");							
 						}
 
+						try{
 						if (!resp_uff_nom.equals(param[23])) {
 							if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIssa, "ale63_RESP_UFFICIO_NOMINATIVO",
 									param[23], url, user, password)) {
@@ -898,6 +1166,11 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 								nbplog.info(recNum + " - " + "ssa : " + ssa + " bsrUri : " + bsrURIssa
 										+ " changed field - ale63_RESP_UFFICIO_NOMINATIVO - value before = "
 										+ resp_uff_nom + " new value = " + param[23]);
+						}}
+						catch (java.lang.ArrayIndexOutOfBoundsException ex) {
+							nbplog.error(recNum + " - "
+									+ "Error : on updating ale63_RESP_UFFICIO_NOMINATIVO for object type Organization : "
+									+ ssa + " " + bsrURIssa + " because column 23 is not present or empty (columns start from 0)");							
 						}
 
 						if (!ssaDescr.equalsIgnoreCase(ssaDescrAtt)) {
