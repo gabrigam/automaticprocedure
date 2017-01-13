@@ -55,6 +55,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 		nbplog.info("Batch SSAAcronimoBusinessApplication V1.6 Gennaio  2017");
 		nbplog.info("aggiunti ambito e ambito descrizione per oggetti");
 		nbplog.info("migliorata gestione file non trovato o non leggibile (1.5)");
+		nbplog.info("0117 inserito trim matricole, check matricole non presenti od omesse , check matricole contenenti spazi");
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		System.out.println("");
