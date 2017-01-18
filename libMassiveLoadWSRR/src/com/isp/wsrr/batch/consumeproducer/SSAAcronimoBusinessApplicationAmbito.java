@@ -32,6 +32,7 @@ import com.isp.wsrr.utility.WSRRUtility;
  * 241016 aggiunta la gestione ambito e ambito descrizione
  * 16/11/2015 aggiunto controllo esistenza file
  * 120117 metto trim sull matricola che mi ritorna dal file myapm
+ * 180117 modificate le substring per estrazione dal file matricole
  */
 
 public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider {
@@ -159,7 +160,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 					}
 
 					try {
-						surname = line.substring(6, 31);
+						surname = line.substring(6, 30); //180117 before 31
 					} catch (Exception ex2) {
 						inError = true;
 						errors++;
@@ -167,7 +168,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 					}
 
 					try {
-						name = line.substring(31, 47);
+						name = line.substring(30, 46); //180117 before 31 47
 
 					} catch (Exception ex3) {
 						nbplog.error("Error  on getting name field for record " + line);
