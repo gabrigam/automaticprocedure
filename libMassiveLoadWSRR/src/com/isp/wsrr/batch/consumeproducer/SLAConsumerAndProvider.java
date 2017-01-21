@@ -48,26 +48,23 @@ public class SLAConsumerAndProvider {
 			updateLogger(logFileName, "caricamentiISPAppender",
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 
-		//System.out.println("togli blocco!");
+		// System.out.println("togli blocco!");
 
-		//Runtime.getRuntime().exit(0);
+		// Runtime.getRuntime().exit(0);
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V1.6  Gennaio 2017");
+		log.info("Batch SLAConsumerAndProvider V1.7  Gennaio 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
-		log.info("23.11.2016 inserito controllo nel caso in cui non vengano passati tutti i valori presenti nei file in modo che non venga generata l'eccezzione indice non valido"
-				+ "\n per designtime la data non deve essere passata e' stata creata quindi una funzione di controllo ah hoch: checkInputData4DesignTime"
-				+ "\n sempre nel caso di designtime il time stamp viene forzato a stringa vuota per compatibilita' con la tipologia runtime");
+		log.info(
+				"23.11.2016 inserito controllo nel caso in cui non vengano passati tutti i valori presenti nei file in modo che non venga generata l'eccezzione indice non valido"
+						+ "\n per designtime la data non deve essere passata e' stata creata quindi una funzione di controllo ah hoch: checkInputData4DesignTime"
+						+ "\n sempre nel caso di designtime il time stamp viene forzato a stringa vuota per compatibilita' con la tipologia runtime");
+		log.info("21.01.2017 inserito un controllo sul consumer che deve essere di tipo : SCOPEN - SCOPEN - SOPEN(IIPARAL)");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
-		System.out.println(
-				"----------------------------------------------------------------------------------------------------------------------");
-		System.out.println("Procedura automatica SLA consumer & Provider V1.1 Settembre 2016 originale da workspace");
-		System.out.println(
-				"----------------------------------------------------------------------------------------------------------------------");
 		System.out.println("");
 
 		// check Input parameters
@@ -179,50 +176,51 @@ public class SLAConsumerAndProvider {
 				}
 
 				else if (firstrow == false) {
-					
-					boolean inputdataOk=true;
-					
+
+					boolean inputdataOk = true;
+
 					try {
-					
-					if (tipology.equalsIgnoreCase("DESIGNTIME")) {
-						
-						inputdataOk = slaconsumerandprovider.checkInputData4DesignTime(paramArray[1], paramArray[3],
-								paramArray[2], paramArray[4], paramArray[5], paramArray[0]);
-					} else {
-						
-						inputdataOk = slaconsumerandprovider.checkInputData(paramArray[1], paramArray[3],
-								paramArray[2], paramArray[4], paramArray[5], paramArray[0], paramArray[6]); 
-					}
-					}catch(java.lang.ArrayIndexOutOfBoundsException exex) {
-						
-						inputdataOk=false;
+
+						if (tipology.equalsIgnoreCase("DESIGNTIME")) {
+
+							inputdataOk = slaconsumerandprovider.checkInputData4DesignTime(paramArray[1], paramArray[3],
+									paramArray[2], paramArray[4], paramArray[5], paramArray[0]);
+						} else {
+
+							inputdataOk = slaconsumerandprovider.checkInputData(paramArray[1], paramArray[3],
+									paramArray[2], paramArray[4], paramArray[5], paramArray[0], paramArray[6]);
+						}
+					} catch (java.lang.ArrayIndexOutOfBoundsException exex) {
+
+						inputdataOk = false;
 					}
 
 					if (inputdataOk) {
 
-						if(line !=null && !line.startsWith("#")) { 
-							
-							String providerInvocationTs="";
-							
+						if (line != null && !line.startsWith("#")) {
+
+							String providerInvocationTs = "";
+
 							if (!tipology.equalsIgnoreCase("DESIGNTIME")) {
-								providerInvocationTs=paramArray[6];
+								providerInvocationTs = paramArray[6];
 							}
 
 							slaconsumerandprovider.makeSLAConsumerAndProvider(cdb, environment.trim(), tipology.trim(),
-									paramArray[1].trim(), paramArray[3].trim(), paramArray[2].trim(), paramArray[4].trim(),
-									paramArray[5].trim(), paramArray[0].trim(),providerInvocationTs.trim(), args[2], args[1],
-									recNum);
+									paramArray[1].trim(), paramArray[3].trim(), paramArray[2].trim(),
+									paramArray[4].trim(), paramArray[5].trim(), paramArray[0].trim(),
+									providerInvocationTs.trim(), args[2], args[1], recNum);
 						} else {
-							//user request a skip 
-							if (line !=null) {
-								log.error("record(" + recNum + ") " +line);
+							// user request a skip
+							if (line != null) {
+								log.error("record(" + recNum + ") " + line);
 								log.error("record(" + recNum + ")  Record skipped");
-							} else 
+							} else
 								log.error("record(" + recNum + ")  invalid record no data");
 						}
 
 					} else
-						log.error("Found incorrect Values o values not specified at record Number : " + "(" + recNum + ")");
+						log.error("Found incorrect Values o values not specified at record Number : " + "(" + recNum
+								+ ")");
 
 					recNum++;
 				}
@@ -230,11 +228,10 @@ public class SLAConsumerAndProvider {
 			}
 			log.info("Batch SLAConsumerAndProvider finished..CS");
 		} catch (IOException e) {
-			log.error("Exception File : " + args[1]+ " not exist / not redeable !");
+			log.error("Exception File : " + args[1] + " not exist / not redeable !");
 
 		}
 	}
-
 
 	public void makeSLAConsumerAndProvider(ConnectionDataBeanSingleton cdb, String environment, String tipology,
 			String consumer, String provider, String consumerVersion, String providerVersion, String interfaceType,
@@ -257,17 +254,20 @@ public class SLAConsumerAndProvider {
 		String acroName = "";
 		String envelopeSLA = "";
 
+		String typeService = "";
+		String typeServiceSubtype = "";
+
 		boolean error = false;
 
 		String[] transactions = {
 				"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23RequestSLA",
-		"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ApproveSLARequest" };
+				"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ApproveSLARequest" };
 
 		String avPrimaryType = "http://www.ibm.com/xmlns/prod/serviceregistry/profile/v6r3/GovernanceEnablementModel%23ApplicationVersion";
 
-		String inactiveStateSLA="SLAInactive";
+		String inactiveStateSLA = "SLAInactive";
 
-		String activeStateSLA="SLAActive";
+		String activeStateSLA = "SLAActive";
 
 		if (consumerVersion == null || consumerVersion.length() == 0)
 			consumerVersion = "00";
@@ -275,570 +275,665 @@ public class SLAConsumerAndProvider {
 			providerVersion = "00";
 
 		try {
-		
-		StringBuffer sb = new StringBuffer();
 
-		url = cdb.getUrl();
-		user = cdb.getUser();
-		password = cdb.getPassword();
+			StringBuffer sb = new StringBuffer();
 
-		bsrURIProvider = wsrrutility.getGenericObjectByNameAndVersionExtended(provider.trim(), providerVersion.trim(), url,
-				user, password);
+			url = cdb.getUrl();
+			user = cdb.getUser();
+			password = cdb.getPassword();
 
-		if (bsrURIProvider != null && !bsrURIProvider.contains(">>>***ERROR**>>>") ) {
+			bsrURIProvider = wsrrutility.getGenericObjectByNameAndVersionExtended(provider.trim(),
+					providerVersion.trim(), url, user, password);
 
-			if (onlyDate != null && !onlyDate.equalsIgnoreCase("ONLYDATE")) {
+			if (bsrURIProvider != null && !bsrURIProvider.contains(">>>***ERROR**>>>")) {
 
-				bsrURIConsumer = wsrrutility.getGenericObjectByNameAndVersionExtended(consumer.trim(), consumerVersion.trim(), url, user,
-						password); 
+				if (onlyDate != null && !onlyDate.equalsIgnoreCase("ONLYDATE")) {
 
-				if (bsrURIConsumer != null && !bsrURIConsumer.contains(">>>***ERROR**>>>")) {
+					bsrURIConsumer = wsrrutility.getGenericObjectByNameAndVersionExtended(consumer.trim(),
+							consumerVersion.trim(), url, user, password);
 
-					sldProvider = sb.append("SLD%20-%20").append(provider).append("_").append(providerVersion) //se non metto %20 da 505
-							.append("_").append(interfaceType).toString();
+					// 21012017
+					// consumer accettabili: SCOPEN - SCHOST - SOPEN(IIBPARAL)
+					typeService = wsrrutility.getServiceVersionTipologyBybsrURI(bsrURIConsumer, url, user, password);
+					
+					typeServiceSubtype = wsrrutility.getServiceVersionSubTipologyBybsrURI(bsrURIConsumer, url, user,
+							
+							password);
+					Boolean consumerCompatible = false;
 
-					bsrURISLD = wsrrutility.getGenericObjectByNameAndPrimaryTypeExtended(sldProvider,
-							"http://www.ibm.com/xmlns/prod/serviceregistry/profile/v6r3/GovernanceEnablementModel%23ServiceLevelDefinition",
-							url, user, password);
+					if (typeServiceSubtype != null && typeService != null) {
 
-					if (bsrURISLD != null && !bsrURISLD.contains(">>>***ERROR**>>>")) { //error if sld not defined
+						if (typeService.equals("SCOPEN") || typeService.equals("SCHOST")
+								|| (typeService.equals("SOPEN") & typeServiceSubtype.equals("IIBPARAL"))) {
+							consumerCompatible = true;
+						}
+					}
 
-						if (bind.equalsIgnoreCase("S-S")) {
+					if (consumerCompatible) {
 
-							bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtended(consumer, consumerVersion,
-									bsrURISLD, url, user, password);
+						if (bsrURIConsumer != null && !bsrURIConsumer.contains(">>>***ERROR**>>>")) {
 
-							if (bsrURISLA_SV == null) {  //if null no sla associated to sld
+							sldProvider = sb.append("SLD%20-%20").append(provider).append("_").append(providerVersion) // se
+																														// non
+																														// metto
+																														// %20
+																														// da
+																														// 505
+									.append("_").append(interfaceType).toString();
 
-								sb.delete(0, sb.length());
-								sb.append("SLA - ").append(consumer).append(" (").append(consumerVersion).append(")");
+							bsrURISLD = wsrrutility.getGenericObjectByNameAndPrimaryTypeExtended(sldProvider,
+									"http://www.ibm.com/xmlns/prod/serviceregistry/profile/v6r3/GovernanceEnablementModel%23ServiceLevelDefinition",
+									url, user, password);
 
-								String applicationData = "";
-								String systemData = "";
-								String productionData = "";
+							if (bsrURISLD != null && !bsrURISLD.contains(">>>***ERROR**>>>")) { // error
+																								// if
+																								// sld
+																								// not
+																								// defined
 
-								if (environment.trim().equals("Application"))
-									applicationData = providerInvocationTs;
-								if (environment.trim().equals("SystemTest"))
-									systemData = providerInvocationTs;
-								if (environment.trim().equals("Produzione"))
-									productionData = providerInvocationTs;
+								if (bind.equalsIgnoreCase("S-S")) {
 
-								envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(sb.toString(), "",
-										applicationData, systemData, productionData, bsrURISLD);
+									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtended(consumer, consumerVersion,
+											bsrURISLD, url, user, password);
 
-								bsrURISLA_SV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url, user,
-										password);
+									if (bsrURISLA_SV == null) { // if null no
+																// sla
+																// associated to
+																// sld
 
-								if (bsrURISLA_SV != null) {
+										sb.delete(0, sb.length());
+										sb.append("SLA - ").append(consumer).append(" (").append(consumerVersion)
+												.append(")");
 
-									// add SLA to consumer by gep63_consume
-									// relations
-									if (wsrrutility.updateRelationShip(bsrURIConsumer, "gep63_consumes", bsrURISLA_SV,
-											url, user, password)) {
-																  
-										if (!wsrrutility.changeGovernanceState(bsrURISLA_SV, transactions, url, user,  //approved
-												password)) {
+										String applicationData = "";
+										String systemData = "";
+										String productionData = "";
+
+										if (environment.trim().equals("Application"))
+											applicationData = providerInvocationTs;
+										if (environment.trim().equals("SystemTest"))
+											systemData = providerInvocationTs;
+										if (environment.trim().equals("Produzione"))
+											productionData = providerInvocationTs;
+
+										envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(sb.toString(),
+												"", applicationData, systemData, productionData, bsrURISLD);
+
+										bsrURISLA_SV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url,
+												user, password);
+
+										if (bsrURISLA_SV != null) {
+
+											// add SLA to consumer by
+											// gep63_consume
+											// relations
+											if (wsrrutility.updateRelationShip(bsrURIConsumer, "gep63_consumes",
+													bsrURISLA_SV, url, user, password)) {
+
+												if (!wsrrutility.changeGovernanceState(bsrURISLA_SV, transactions, url,
+														user, // approved
+														password)) {
+													error = true;
+													log.error("record(" + recNum
+															+ ") Error on changing SLA state to Inactive SLA : "
+															+ bsrURISLA_SV);
+												}
+
+											} else {
+
+												error = true;
+												log.error("record(" + recNum
+														+ ") Error on updating SLA relation during binding to object (BusinessService) : "
+														+ bsrURIConsumer + " with object : " + bsrURISLA_SV);
+											}
+
+										} else {
 											error = true;
-											log.error("record(" + recNum + ") Error on changing SLA state to Inactive SLA : " +bsrURISLA_SV);
+											log.error("record(" + recNum + ") Error on SLA creation tipology S-S");
 										}
-
 									} else {
 
-										error = true;
-										log.error("record(" + recNum + ") Error on updating SLA relation during binding to object (BusinessService) : "
-												+ bsrURIConsumer + " with object : " + bsrURISLA_SV);
+										if (bsrURISLA_SV.contains(">>**ERROR**>>")) {
+											error = true;
+											log.error("record(" + recNum
+													+ ") error getting SLA associate to SLD for consumer : " + consumer
+													+ " sld : " + bsrURISLD + " S-S");
+											log.error("error " + bsrURISLA_SV.substring(12, bsrURISLA_SV.length()));
+										}
+									} // bsrURISLA_SV
+
+									if (!error) { // here acronimo
+
+										// get acroname
+										acroName = wsrrutility.getOrganizationFromGenericObjectByNameAndVersionExtended(
+												consumer, consumerVersion, url, user, password);
+
+										if (acroName != null && !acroName.contains(">>**ERROR**>>")) { // error
+																										// if
+																										// not
+																										// defined
+
+											bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
+													acroName, "00", avPrimaryType, bsrURISLD, url, user, password);
+
+											if (bsrURISLA_AV == null) { // if
+																		// null
+																		// no
+																		// sla
+																		// associated
+																		// to
+																		// sld
+
+												bsrURIApplicatioVersion = wsrrutility
+														.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(
+																acroName, "00", avPrimaryType, url, user, password);
+
+												if (bsrURIApplicatioVersion != null
+														&& !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) {
+
+													sb.delete(0, sb.length());
+													sb.append("SLA - ").append(acroName).append(" (").append("00")
+															.append(")");
+
+													String applicationData = "";
+													String systemData = "";
+													String productionData = "";
+
+													if (environment.trim().equals("Application"))
+
+														applicationData = providerInvocationTs;
+													if (environment.trim().equals("SystemTest"))
+														systemData = providerInvocationTs;
+													if (environment.trim().equals("Produzione"))
+														productionData = providerInvocationTs;
+
+													envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(
+															sb.toString(), "", applicationData, systemData,
+															productionData, bsrURISLD);
+
+													bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA,
+															"POST", url, user, password);
+
+													if (bsrURISLA_AV != null) {
+
+														if (wsrrutility.updateRelationShip(bsrURIApplicatioVersion,
+																"gep63_consumes", bsrURISLA_AV, url, user, password)) {
+
+															if (wsrrutility.changeGovernanceState(bsrURISLA_AV,
+																	transactions, url, user, password)) {
+
+															} else {
+																error = true;
+
+																log.error("record(" + recNum
+																		+ ") Error on changing SLA(Business Application) state to Inactive SLA : "
+																		+ bsrURISLA_AV);
+															}
+
+														} else {
+															error = true;
+
+															log.error("record(" + recNum
+																	+ ") Error on updating SLA relation during binding to object (ApplicationVersion) : "
+																	+ bsrURIApplicatioVersion + " with object : "
+																	+ bsrURISLA_AV);
+														}
+													} else {
+														error = true;
+														log.error("record(" + recNum
+																+ ") Error on SLA creation for business application");
+													}
+												} else {
+
+													if (bsrURIApplicatioVersion == null) {
+														error = true;
+														log.error("record(" + recNum
+																+ ") Error object of type application version : "
+																+ acroName + " not found");
+
+													} else {
+
+														error = true;
+														log.error("record(" + recNum
+																+ ") error getting application Version : " + acroName
+																+ " sld : " + bsrURISLD + " S-S");
+														log.error("error " + bsrURIApplicatioVersion.substring(12,
+																bsrURIApplicatioVersion.length()));
+													}
+												}
+											} else {
+
+												if (bsrURISLA_AV.contains(">>**ERROR**>>")) {
+													error = true;
+													log.error("record(" + recNum
+															+ ") error getting SLA associate to SLD  for application Version : "
+															+ acroName + " sld : " + bsrURISLD + " S-S");
+													log.error("error "
+															+ bsrURISLA_AV.substring(12, bsrURISLA_AV.length()));
+												}
+											}
+
+										} else {
+
+											if (acroName == null) {
+
+												log.error("record(" + recNum
+														+ ") No organization associated to consumer service :  "
+														+ consumer);
+
+											} else
+												error = true;
+											log.error("record(" + recNum + ") error getting acronimo  from consumer : "
+													+ consumer + " version : " + consumerVersion);
+											log.error("error " + acroName.substring(12, acroName.length()));
+
+										}
+
 									}
 
-								} else {
-									error = true;
-									log.error("record(" + recNum + ") Error on SLA creation tipology S-S");
-								}
-							} else {
+									// update date for SLA: bsrURISLA_SV and
+									// bsrURISLA_AV
 
-								if (bsrURISLA_SV.contains(">>**ERROR**>>")) {
-									error = true;
-									log.error(
-											"record(" + recNum + ") error getting SLA associate to SLD for consumer : "
-													+ consumer + " sld : " + bsrURISLD +" S-S");
-									log.error("error " + bsrURISLA_SV.substring(12, bsrURISLA_SV.length()));
-								}
-							} //bsrURISLA_SV
+									if (!error && bsrURISLA_SV != null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
 
+										error = updateDateSLA(wsrrutility, environment, bsrURISLA_SV,
+												providerInvocationTs, bind, recNum, url, user, password);
 
-							if (!error) {  // here acronimo
+										if (error) {
 
-								// get acroname
-								acroName = wsrrutility.getOrganizationFromGenericObjectByNameAndVersionExtended(
-										consumer, consumerVersion, url, user, password);
+											log.error("record(" + recNum + ") Error updating Date on SLA : "
+													+ bsrURISLA_SV + " environment : " + environment + " " + bind);
+										}
+									}
 
-								if (acroName != null && !acroName.contains(">>**ERROR**>>")) { //error if not defined
+									if (!error && bsrURISLA_AV != null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
 
-									bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
-											acroName, "00", avPrimaryType, bsrURISLD, url, user, password);
+										error = updateDateSLA(wsrrutility, environment, bsrURISLA_AV,
+												providerInvocationTs, bind, recNum, url, user, password);
 
-									if (bsrURISLA_AV == null) { //if null no sla associated to sld
+										if (error) {
+
+											log.error("record(" + recNum + ") Error updating Date on SLA : "
+													+ bsrURISLA_AV + " environment : " + environment + " " + bind);
+										}
+									}
+
+								} else { // A-S
+
+									// new
+									bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(consumer,
+											"00", avPrimaryType, bsrURISLD, url, user, password);
+
+									if (bsrURISLA_AV == null) {
 
 										bsrURIApplicatioVersion = wsrrutility
-												.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(acroName,
-														"00", avPrimaryType, url, user, password);
+												.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(consumer, "00",
+														avPrimaryType, url, user, password);
 
-										if (bsrURIApplicatioVersion != null && !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) {
+										if (bsrURIApplicatioVersion != null
+												&& !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) { // cambiare
 
 											sb.delete(0, sb.length());
-											sb.append("SLA - ").append(acroName).append(" (").append("00")
-											.append(")");
+											sb.append("SLA - ").append(consumer).append(" (").append("00").append(")");
 
 											String applicationData = "";
-											String  systemData = "";
+											String systemData = "";
 											String productionData = "";
 
-											if (environment.trim().equals("Application"))
-
+											if (environment.trim().equalsIgnoreCase("APPLICATION"))
 												applicationData = providerInvocationTs;
-											if (environment.trim().equals("SystemTest"))
+											if (environment.trim().equalsIgnoreCase("SYSTEM"))
 												systemData = providerInvocationTs;
-											if (environment.trim().equals("Produzione"))
+											if (environment.trim().equalsIgnoreCase("PRODUZIONE"))
 												productionData = providerInvocationTs;
 
-											envelopeSLA=wsrrenvelopes.createServiceLevelAgreementXMLDAta(sb.toString(),
-													"", applicationData, systemData, productionData,
+											envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(
+													sb.toString(), "", applicationData, systemData, productionData,
 													bsrURISLD);
 
-											bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA,
-													"POST", url, user, password);
+											bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url,
+													user, password);
 
 											if (bsrURISLA_AV != null) {
 
 												if (wsrrutility.updateRelationShip(bsrURIApplicatioVersion,
-														"gep63_consumes", bsrURISLA_AV, url, user,
-														password)) {
+														"gep63_consumes", bsrURISLA_AV, url, user, password)) {
 
-													if (wsrrutility.changeGovernanceState(bsrURISLA_AV,
-															transactions, url, user, password)) {
+													if (wsrrutility.changeGovernanceState(bsrURISLA_AV, transactions,
+															url, user, password)) {
 
 													} else {
 														error = true;
-
 														log.error("record(" + recNum
-																+ ") Error on changing SLA(Business Application) state to Inactive SLA : "+bsrURISLA_AV);
+																+ ") Error on changing SLA(Business Application) state to Inactive ");
 													}
-													
 												} else {
 													error = true;
-
 													log.error("record(" + recNum
 															+ ") Error on updating SLA relation during binding to object (ApplicationVersion) : "
-															+ bsrURIApplicatioVersion
-															+ " with object : " + bsrURISLA_AV);
+															+ bsrURIApplicatioVersion + " with object : "
+															+ bsrURISLA_AV);
 												}
+
 											} else {
-												error = true;
-												log.error("record(" + recNum + ") Error on SLA creation for business application");
+												log.error("record(" + recNum
+														+ ") Error on SLA creation for business application tipology A-S");
 											}
 										} else {
-										
-											if (bsrURIApplicatioVersion==null) {												
-												error = true;
-												log.error("record(" + recNum + ") Error object of type application version : "
-														+ acroName + " not found");
-												
-						
-											}else {
-											
+
+											if (bsrURIApplicatioVersion == null) {
 												error = true;
 												log.error("record(" + recNum
-														+ ") error getting application Version : "
-														+ acroName + " sld : " + bsrURISLD +" S-S");
-												log.error("error "
-														+ bsrURIApplicatioVersion.substring(12, bsrURIApplicatioVersion.length()));
+														+ ") Error object of type application version : " + consumer
+														+ " not found");
+
+											} else {
+												error = true;
+												log.error("record(" + recNum
+														+ ") Error on query for object application version : "
+														+ consumer + " A-S");
+												log.error("error " + bsrURIApplicatioVersion.substring(12,
+														bsrURIApplicatioVersion.length()));
+
 											}
+
 										}
-									} else {
+									}
+
+									else {
 
 										if (bsrURISLA_AV.contains(">>**ERROR**>>")) {
 											error = true;
 											log.error("record(" + recNum
-													+ ") error getting SLA associate to SLD  for application Version : "
-													+ acroName + " sld : " + bsrURISLD +" S-S");
-											log.error("error "
-													+ bsrURISLA_AV.substring(12, bsrURISLA_AV.length()));
+													+ ") error getting SLA associate to SLD for consumer : " + consumer
+													+ " sld : " + bsrURISLD + " A-S");
+											log.error("error " + bsrURISLA_AV.substring(12, bsrURISLA_AV.length()));
 										}
 									}
 
+									// update date for SLA: bsrURISLA_AV
+									if (!error && bsrURISLA_AV != null) {
 
-								} else {
+										error = updateDateSLA(wsrrutility, environment, bsrURISLA_AV,
+												providerInvocationTs, bind, recNum, url, user, password);
 
-									if (acroName ==null ) {
-										
-										log.error("record(" + recNum + ") No organization associated to consumer service :  "+consumer);
+										if (error) {
 
-									} else 
-										error = true;
-										log.error("record(" + recNum
-												+ ") error getting acronimo  from consumer : "+consumer +" version : "+consumerVersion);
-										log.error("error "
-												+ acroName.substring(12, acroName.length()));
-										
-								}
-
-							}
-
-							//update date for SLA: bsrURISLA_SV and bsrURISLA_AV
-
-							if (!error && bsrURISLA_SV !=null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
-
-								error=updateDateSLA(wsrrutility, environment, bsrURISLA_SV, providerInvocationTs, bind, recNum, url, user, password);
-
-								if (error) {
-
-									log.error("record(" + recNum + ") Error updating Date on SLA : "+bsrURISLA_SV +" environment : "+ environment + " "+bind);
-								}
-							}
-
-
-							if (!error && bsrURISLA_AV != null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
-
-								error=updateDateSLA(wsrrutility, environment, bsrURISLA_AV, providerInvocationTs, bind, recNum, url, user, password);
-
-								if (error) {
-
-									log.error("record(" + recNum + ") Error updating Date on SLA : "+bsrURISLA_AV +" environment : "+ environment + " "+bind);
-								}
-							}
-
-
-						} else { // A-S
-
-							//new
-							bsrURISLA_AV=wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
-									consumer, "00", avPrimaryType, bsrURISLD, url, user, password);
-
-							if (bsrURISLA_AV==null) {
-
-								bsrURIApplicatioVersion = wsrrutility.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(
-										consumer, "00", avPrimaryType, url, user, password);
-
-								if (bsrURIApplicatioVersion != null && !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) { // cambiare
-
-									sb.delete(0, sb.length());
-									sb.append("SLA - ").append(consumer).append(" (").append("00").append(")");
-
-									String applicationData = "";
-									String systemData = "";
-									String productionData = "";
-
-									if (environment.trim().equalsIgnoreCase("APPLICATION"))
-										applicationData = providerInvocationTs;
-									if (environment.trim().equalsIgnoreCase("SYSTEM"))
-										systemData = providerInvocationTs;
-									if (environment.trim().equalsIgnoreCase("PRODUZIONE"))
-										productionData = providerInvocationTs;
-
-									envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(sb.toString(), "",
-											applicationData, systemData, productionData, bsrURISLD);
-
-									bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url, user,
-											password);
-
-									if (bsrURISLA_AV != null) {
-
-										if (wsrrutility.updateRelationShip(bsrURIApplicatioVersion, "gep63_consumes",
-												bsrURISLA_AV, url, user, password)) {
-
-											if (wsrrutility.changeGovernanceState(bsrURISLA_AV, transactions, url, user,
-													password)) {
-
-											} else {
-												error = true;
-												log.error("record(" + recNum + ") Error on changing SLA(Business Application) state to Inactive ");
-											}
-										} else {
-											error = true;
-											log.error("record(" + recNum + ") Error on updating SLA relation during binding to object (ApplicationVersion) : "
-													+ bsrURIApplicatioVersion + " with object : "
-													+ bsrURISLA_AV);
+											log.error("record(" + recNum + ") Error updating Date on SLA : "
+													+ bsrURISLA_AV + " environment : " + environment + " " + bind);
 										}
 
-									} else {
-										log.error("record(" + recNum + ") Error on SLA creation for business application tipology A-S");
 									}
-								} else {
+								}
 
-									if (bsrURIApplicatioVersion == null) {
-										error = true;
-										log.error("record(" + recNum + ") Error object of type application version : " + consumer + " not found");
+								boolean notError = false;
 
-									} else {
-										error = true;
-										log.error(
-												"record(" + recNum + ") Error on query for object application version : "
-														+ consumer + " A-S");
-										log.error("error " + bsrURIApplicatioVersion.substring(12, bsrURIApplicatioVersion.length()));
+								String[] SLAactivateTransaction = {
+										"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ActivateSLA" };
 
+								if ((bsrURISLA_SV != null || bsrURISLA_AV != null) && !error) {
+
+									if (tipology.equalsIgnoreCase("RUNTIME")) {
+
+										if (bsrURISLA_SV != null) {
+
+											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV,
+													"gpx63_RUNTIME", "Y", url, user, password);
+
+											if (notError) {
+
+												boolean changeGovernancestate = true;
+
+												String slaState = wsrrutility.checkClassification(bsrURISLA_SV,
+														activeStateSLA, url, user, password);
+
+												if (slaState == null) {
+
+													slaState = wsrrutility.checkClassification(bsrURISLA_SV,
+															inactiveStateSLA, url, user, password);
+
+													if (slaState == null) {
+
+														notError = false;
+														log.error("record(" + recNum + ") Error SLA : " + bsrURISLA_SV
+																+ " is not is state : " + inactiveStateSLA + " or "
+																+ activeStateSLA);
+													} else {
+
+														if (slaState != null && slaState.contains(">>**ERROR**>>")) {
+															notError = false;
+															log.error("record(" + recNum
+																	+ ") Error checkin governance state for object SLA  : "
+																	+ bsrURISLA_AV);
+															log.error("record(" + recNum + ") Error : "
+																	+ slaState.substring(12, slaState.length()));
+														}
+													}
+
+												} else {
+
+													if (slaState != null && slaState.contains(">>**ERROR**>>")) {
+
+														notError = false;
+														log.error("record(" + recNum
+																+ ") Error checkin governance state for object SLA  : "
+																+ bsrURISLA_AV);
+														log.error("record(" + recNum + ") Error : "
+																+ slaState.substring(12, slaState.length()));
+
+													} else
+														changeGovernancestate = false;
+
+												}
+
+												if (notError && changeGovernancestate) {// was!
+
+													if (!wsrrutility.changeGovernanceState(bsrURISLA_SV,
+															SLAactivateTransaction, url, user, password)) {
+
+														notError = false;
+
+														log.error("record(" + recNum
+																+ ") Error during change state from INACTIVE to ACTIVE for SLA bsrURI : "
+																+ bsrURISLA_SV
+																+ " check if SLD governance state is Approved");
+													}
+
+												}
+
+											} else
+												log.error("record(" + recNum + ") Error updating property gpx63_"
+														+ tipology + " SLA bsrURI : " + bsrURISLA_SV);
+										}
+
+										if (bsrURISLA_AV != null) {
+
+											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV,
+													"gpx63_RUNTIME", "Y", url, user, password);
+
+											if (notError) {
+
+												boolean changeGovernancestate = true;
+
+												String slaState = wsrrutility.checkClassification(bsrURISLA_AV,
+														activeStateSLA, url, user, password);
+
+												if (slaState == null) {
+
+													slaState = wsrrutility.checkClassification(bsrURISLA_AV,
+															inactiveStateSLA, url, user, password);
+
+													if (slaState == null) {
+
+														notError = false;
+														log.error("record(" + recNum + ") Error SLA : " + bsrURISLA_AV
+																+ " is not is state : " + inactiveStateSLA + " or "
+																+ activeStateSLA);
+													} else {
+
+														if (slaState != null && slaState.contains(">>**ERROR**>>")) {
+															notError = false;
+															log.error("record(" + recNum
+																	+ ") Error checkin governance state for object SLA  : "
+																	+ bsrURISLA_AV);
+															log.error("record(" + recNum + ") Error : "
+																	+ slaState.substring(12, slaState.length()));
+														}
+													}
+
+												} else {
+
+													if (slaState != null && slaState.contains(">>**ERROR**>>")) {
+
+														notError = false;
+														log.error("record(" + recNum
+																+ ") Error checkin governance state for object SLA  : "
+																+ bsrURISLA_AV);
+														log.error("record(" + recNum + ") Error : "
+																+ slaState.substring(12, slaState.length()));
+
+													} else
+														changeGovernancestate = false;
+
+												}
+
+												if (notError && changeGovernancestate) {
+
+													if (!wsrrutility.changeGovernanceState(bsrURISLA_AV,
+															SLAactivateTransaction, url, user, password)) {
+
+														notError = false;
+
+														log.error("record(" + recNum
+																+ ") Error during change state from INACTIVE to ACTIVE for SLA bsrURI : "
+																+ bsrURISLA_AV
+																+ " check if SLD governance state is Approved");
+
+													}
+												}
+											} else
+												log.error("record(" + recNum + ") Error updating property gpx63_"
+														+ tipology + " SLA bsrURI : " + bsrURISLA_AV);
+
+										}
+
+									} else { // DESIGNTIME
+
+										if (bsrURISLA_SV != null) {
+
+											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV,
+													"gpx63_DESIGNTIME", "Y", url, user, password);
+
+											if (!notError)
+												log.error("record(" + recNum + ") Error updating property gpx63_"
+														+ tipology + " SLA bsrURI : " + bsrURISLA_SV);
+										}
+
+										if (bsrURISLA_AV != null) {
+
+											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV,
+													"gpx63_DESIGNTIME", "Y", url, user, password);
+
+											if (!notError)
+												log.error("record(" + recNum + ") Error updating property gpx63_"
+														+ tipology + " SLA bsrURI : " + bsrURISLA_AV);
+										}
+
+									}
+
+									if (tipology.equalsIgnoreCase("RUNTIME")) { // 22112016
+																				// se
+																				// DESIGNTIME
+																				// non
+																				// bisogna
+																				// aggiorare
+																				// le
+																				// date
+
+										// update date service activation
+										updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer,
+												provider, consumerVersion, providerVersion, interfaceType, bind,
+												providerInvocationTs, sldProvider, filename, recNum, url, user,
+												password);
 									}
 
 								}
-							}
 
-							else {
+								else {
 
-								if (bsrURISLA_AV.contains(">>**ERROR**>>")) {
+									if (bsrURISLA_SV == null && bsrURISLA_AV == null) {
+
+										// log.error("record(" + recNum + ")
+										// Error Service SLA not found
+										// bsrURISLA_AV and bsrURISLA_AV");
+									}
+
+								}
+							} else { // sld not found or in error
+
+								if (bsrURISLD == null) {
+
 									error = true;
-									log.error(
-											"record(" + recNum + ") error getting SLA associate to SLD for consumer : "
-													+ consumer + " sld : " + bsrURISLD + " A-S");
-									log.error("error " + bsrURISLA_AV.substring(12, bsrURISLA_AV.length()));
+									log.error("record(" + recNum + ") Error SLD not found : " + bsrURISLD);
+
+								} else {
+
+									error = true;
+									log.error("record(" + recNum + ") error getting SLD  : " + sldProvider);
+									log.error("error " + bsrURISLD.substring(12, bsrURISLD.length()));
 								}
 							}
 
-							//update date for SLA: bsrURISLA_AV
-							if (!error && bsrURISLA_AV != null) {
+						} else {
 
-								error=updateDateSLA(wsrrutility, environment, bsrURISLA_AV, providerInvocationTs, bind, recNum, url, user, password);
+							if (bsrURIConsumer == null) {
 
-								if (error) {
+								error = true;
+								log.error(" record(" + recNum + ")  Error Consumer not found " + consumer.trim()
+										+ " version :  " + consumerVersion.trim());
 
-									log.error("record(" + recNum + ") Error updating Date on SLA : "+bsrURISLA_AV +" environment : "+ environment + " "+bind);
-								}
+							} else {
 
-							}
-						}
-
-						boolean notError = false;
-
-						String[] SLAactivateTransaction = {
-						"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ActivateSLA" };
-
-						if ((bsrURISLA_SV != null || bsrURISLA_AV != null) && !error) { 
-
-							if (tipology.equalsIgnoreCase("RUNTIME")) {
-
-								if (bsrURISLA_SV != null) {
-
-									notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV, "gpx63_RUNTIME",
-											"Y", url, user, password);
-
-									if (notError) {
-
-										boolean changeGovernancestate=true;
-
-										String slaState=wsrrutility.checkClassification(bsrURISLA_SV, activeStateSLA, url, user, password);
-
-										if (slaState == null) {
-
-											slaState=wsrrutility.checkClassification(bsrURISLA_SV, inactiveStateSLA, url, user, password);
-
-											if (slaState == null) {
-
-												notError=false;
-												log.error("record(" + recNum + ") Error SLA : " + bsrURISLA_SV +" is not is state : "+inactiveStateSLA + " or "
-														+	activeStateSLA);										
-											} else {
-
-												if (slaState != null && slaState.contains(">>**ERROR**>>")){		
-													notError=false;
-													log.error("record(" + recNum + ") Error checkin governance state for object SLA  : "+bsrURISLA_AV);
-													log.error("record(" + recNum + ") Error : "+slaState.substring(12,slaState.length()));
-												}
-											}
-
-										} else {
-
-											if (slaState != null && slaState.contains(">>**ERROR**>>")){
-
-												notError=false;
-												log.error("record(" + recNum + ") Error checkin governance state for object SLA  : "+bsrURISLA_AV);
-												log.error("record(" + recNum + ") Error : "+slaState.substring(12,slaState.length()));
-
-											} else changeGovernancestate=false; 
-
-										}
-
-										if (notError && changeGovernancestate) {//was!
-
-											if (!wsrrutility.changeGovernanceState(bsrURISLA_SV, SLAactivateTransaction,
-													url, user, password)) {
-
-												notError=false;
-
-												log.error("record(" + recNum + ") Error during change state from INACTIVE to ACTIVE for SLA bsrURI : "
-														+ bsrURISLA_SV +" check if SLD governance state is Approved");
-											}											
-
-										} 
-
-									}else
-										log.error("record(" + recNum + ") Error updating property gpx63_" + tipology + " SLA bsrURI : "
-												+ bsrURISLA_SV);
-								}
-
-
-								if (bsrURISLA_AV != null) {
-
-									notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV, "gpx63_RUNTIME",
-											"Y", url, user, password);
-
-									if (notError) {
-
-										boolean changeGovernancestate=true;
-
-										String slaState=wsrrutility.checkClassification(bsrURISLA_AV, activeStateSLA, url, user, password);
-
-										if (slaState == null) {
-
-											slaState=wsrrutility.checkClassification(bsrURISLA_AV, inactiveStateSLA, url, user, password);
-
-											if (slaState == null) {
-
-												notError=false;
-												log.error("record(" + recNum + ") Error SLA : " + bsrURISLA_AV +" is not is state : "+inactiveStateSLA + " or "
-														+	activeStateSLA);										
-											} else {
-
-												if (slaState != null && slaState.contains(">>**ERROR**>>")){		
-													notError=false;
-													log.error("record(" + recNum + ") Error checkin governance state for object SLA  : "+bsrURISLA_AV);
-													log.error("record(" + recNum + ") Error : "+slaState.substring(12,slaState.length()));
-												}
-											}
-
-										} else {
-
-											if (slaState!=null && slaState.contains(">>**ERROR**>>")){
-
-												notError=false;
-												log.error("record(" + recNum + ") Error checkin governance state for object SLA  : "+bsrURISLA_AV);
-												log.error("record(" + recNum + ") Error : "+slaState.substring(12,slaState.length()));
-
-											} else changeGovernancestate=false; 
-
-										}
-
-										if (notError && changeGovernancestate) {
-
-											if (!wsrrutility.changeGovernanceState(bsrURISLA_AV, SLAactivateTransaction,
-													url, user, password)) {
-
-												notError=false;
-
-												log.error("record(" + recNum + ") Error during change state from INACTIVE to ACTIVE for SLA bsrURI : "
-														+ bsrURISLA_AV +" check if SLD governance state is Approved");
-
-											}
-										} 
-									}else
-										log.error("record(" + recNum + ") Error updating property gpx63_" + tipology + " SLA bsrURI : "
-												+ bsrURISLA_AV);
-
-								}
-
-							} else { // DESIGNTIME
-
-								if (bsrURISLA_SV != null) {
-
-									notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV,
-											"gpx63_DESIGNTIME", "Y", url, user, password);
-
-									if (!notError)
-										log.error("record(" + recNum + ") Error updating property gpx63_" + tipology + " SLA bsrURI : "
-												+ bsrURISLA_SV);
-								}
-
-								if (bsrURISLA_AV != null) {
-
-									notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV,
-											"gpx63_DESIGNTIME", "Y", url, user, password);
-
-									if (!notError)
-										log.error( "record(" + recNum + ") Error updating property gpx63_" + tipology + " SLA bsrURI : "
-												+ bsrURISLA_AV);
-								}
-
-							}
-
-							if (tipology.equalsIgnoreCase("RUNTIME")) { //22112016 se DESIGNTIME non bisogna aggiorare le date
-								
-							//update date service activation
-							updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer, provider, consumerVersion,
-									providerVersion, interfaceType, bind, providerInvocationTs, sldProvider, filename, recNum, url,
-									user, password);
-							}
-						    
-						}
-
-						else {
-
-							if (bsrURISLA_SV == null && bsrURISLA_AV  == null) {
-
-								//log.error("record(" + recNum + ") Error Service SLA not found  bsrURISLA_AV and bsrURISLA_AV");
+								error = true;
+								log.error("record(" + recNum + ") error getting Consumer : " + consumer.trim()
+										+ " version : " + consumerVersion);
+								log.error("error " + bsrURIConsumer.substring(12, bsrURIConsumer.length()));
 							}
 
 						}
-					} else { //sld not found or in error
-
-						if (bsrURISLD==null) {
-							
-							error = true;
-							log.error("record(" + recNum + ") Error SLD not found : "+bsrURISLD);
-
-						}
-						else {
-
-							error = true;
-							log.error(
-									"record(" + recNum + ") error getting SLD  : " + sldProvider );
-							log.error("error " + bsrURISLD.substring(12, bsrURISLD.length()));
-						}
+					} else {
+						error = true;
+						log.error("record(" + recNum
+								+ ") error Consumer Service is not acceptable [ acceptable  are : SCOPEN/SCHOST/SOPEN(IIPARAL)] "
+								+ consumer.trim() + " version : " + consumerVersion + " - type : " + typeService
+								+ " - subtype : " + typeServiceSubtype);
 					}
 
+				} else // ONLYDATE
+
+					updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer, provider, consumerVersion,
+							providerVersion, interfaceType, bind, providerInvocationTs, sldProvider, filename, recNum,
+							url, user, password);
+
+			} else {
+
+				if (bsrURIProvider == null) {
+					error = true;
+					log.error(" record(" + recNum + ")  Error Provider not found " + provider.trim() + " version "
+							+ providerVersion.trim());
 
 				} else {
-
-					if (bsrURIConsumer ==null){
-						
-						error = true;
-						log.error(" record(" + recNum + ")  Error Consumer not found " + consumer.trim() + " version :  "
-								+ consumerVersion.trim()); 	
-
-					} else {
-						
-						error = true;
-						log.error(
-								"record(" + recNum + ") error getting Consumer : " + consumer.trim() + " version : " +consumerVersion);
-						log.error("error " + bsrURIConsumer.substring(12, bsrURIConsumer.length()));
-					}
+					error = true;
+					log.error(" record(" + recNum + ")  Error on query  " + provider.trim() + " version "
+							+ providerVersion.trim() + " " + bsrURIProvider.substring(12, bsrURIProvider.length()));
 
 				}
 
-
-			} else // ONLYDATE
-
-				updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer, provider, consumerVersion,
-						providerVersion, interfaceType, bind, providerInvocationTs, sldProvider, filename, recNum, url,
-						user, password);
-
-		} else
-		{
-
-			if (bsrURIProvider==null) {
-				error = true;
-				log.error(" record(" + recNum + ")  Error Provider not found " + provider.trim() + " version "
-						+ providerVersion.trim());
-
-			}else {
-				error = true;
-				log.error(" record(" + recNum + ")  Error on query  " + provider.trim() + " version "
-						+ providerVersion.trim() + " "+bsrURIProvider.substring(12,bsrURIProvider.length()));
-
 			}
-				
-		}
-		
-		}
-		catch (Exception ex ){
+
+		} catch (Exception ex) {
 			log.error(" record(" + recNum + ")  runtimeError captured");
-			log.error(" record(" + recNum + ") " +ex.getMessage());
+			log.error(" record(" + recNum + ") " + ex.getMessage());
 		}
 
 	}//
@@ -958,60 +1053,62 @@ public class SLAConsumerAndProvider {
 
 	}
 
-
-	//chiamata da all
-	public boolean updateDateSLA(WSRRUtility wsrrutility,String environment,String bsrURISLA,String
-			providerInvocationTs, String bind, int recNum, String url,
-			String user, String password) {
+	// chiamata da all
+	public boolean updateDateSLA(WSRRUtility wsrrutility, String environment, String bsrURISLA,
+			String providerInvocationTs, String bind, int recNum, String url, String user, String password) {
 
 		boolean result = true;
 
-		//mettere valore precedente
+		// mettere valore precedente
 
 		if (environment.trim().equals("Application")) {
 
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL",
 					providerInvocationTs, url, user, password);
 
-			if(result){
-				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL for SLA : "+ bsrURISLA + " type : "+bind);
+			if (result) {
+				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL for SLA : "
+						+ bsrURISLA + " type : " + bind);
 
 				result = false;
 
 			} else {
-				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL for SLA : "+ bsrURISLA + " type : "+bind);
+				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL for SLA : "
+						+ bsrURISLA + " type : " + bind);
 			}
 
 		}
-		if (environment.trim().equals("SystemTest")){
+		if (environment.trim().equals("SystemTest")) {
 
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST",
 					providerInvocationTs, url, user, password);
 
-			if(result){
-				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST for SLA : "+ bsrURISLA + " type : "+bind);
+			if (result) {
+				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST for SLA : "
+						+ bsrURISLA + " type : " + bind);
 
 				result = false;
 
-
 			} else {
-				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST for SLA : "+ bsrURISLA + " type : "+bind);
+				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST for SLA : "
+						+ bsrURISLA + " type : " + bind);
 			}
 
 		}
-		if (environment.trim().equals("Produzione")){
+		if (environment.trim().equals("Produzione")) {
 
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD",
 					providerInvocationTs, url, user, password);
 
-			if(result){
-				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD for SLA : "+ bsrURISLA + " type : "+bind);
+			if (result) {
+				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD for SLA : "
+						+ bsrURISLA + " type : " + bind);
 
 				result = false;
 
-
 			} else {
-				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD for SLA : "+ bsrURISLA + " type : "+bind);
+				log.error("record(" + recNum + ")  Error Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD for SLA : "
+						+ bsrURISLA + " type : " + bind);
 			}
 		}
 
@@ -1076,9 +1173,9 @@ public class SLAConsumerAndProvider {
 
 		return dataOk;
 	}
-	
-	public boolean checkInputData4DesignTime(String consumer, String provider, String consumerVersion, String providerVersion,
-			String interfaceType, String bind) {
+
+	public boolean checkInputData4DesignTime(String consumer, String provider, String consumerVersion,
+			String providerVersion, String interfaceType, String bind) {
 
 		boolean dataOk = true;
 
