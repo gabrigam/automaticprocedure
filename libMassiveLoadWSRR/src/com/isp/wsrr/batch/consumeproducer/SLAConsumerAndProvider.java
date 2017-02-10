@@ -33,7 +33,7 @@ public class SLAConsumerAndProvider {
 
 	protected static Logger log = LogManager.getLogger(SLAConsumerAndProvider.class.getName());
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
 		// Runtime.getRuntime().exit(0);
 
@@ -54,7 +54,7 @@ public class SLAConsumerAndProvider {
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V1.7  Gennaio 2017");
+		log.info("Batch SLAConsumerAndProvider V1.8  Febbraio 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -235,7 +235,7 @@ public class SLAConsumerAndProvider {
 
 	public void makeSLAConsumerAndProvider(ConnectionDataBeanSingleton cdb, String environment, String tipology,
 			String consumer, String provider, String consumerVersion, String providerVersion, String interfaceType,
-			String bind, String providerInvocationTs, String onlyDate, String filename, int recNum) {
+			String bind, String providerInvocationTs, String onlyDate, String filename, int recNum) throws Exception {
 
 		WSRREnvelopes wsrrenvelopes = new WSRREnvelopes();
 		WSRRUtility wsrrutility = new WSRRUtility();
@@ -934,6 +934,7 @@ public class SLAConsumerAndProvider {
 		} catch (Exception ex) {
 			log.error(" record(" + recNum + ")  runtimeError captured");
 			log.error(" record(" + recNum + ") " + ex.getMessage());
+			throw new Exception(ex);
 		}
 
 	}//
