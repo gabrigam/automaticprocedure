@@ -54,7 +54,7 @@ public class SLAConsumerAndProvider {
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V1.8  Febbraio 2017");
+		log.info("Batch SLAConsumerAndProvider V1.9  Marzo 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -1176,7 +1176,7 @@ public class SLAConsumerAndProvider {
 		if (dataOk) {
 
 			if (!interfaceType.equals("REST") && !interfaceType.equals("SOAP") && !interfaceType.equals("CICS")
-					&& !interfaceType.equals("MQ"))
+					&& !interfaceType.equals("MQ") && !interfaceType.equals("CALLABLE") && !interfaceType.equals("WOLA") && !interfaceType.equals("ZRES") && !interfaceType.equals("SHC"))
 				dataOk = false;
 
 			if (!bind.equals("S-S") && !bind.equals("A-S"))
@@ -1198,7 +1198,7 @@ public class SLAConsumerAndProvider {
 		if (dataOk) {
 
 			if (!interfaceType.equals("REST") && !interfaceType.equals("SOAP") && !interfaceType.equals("CICS")
-					&& !interfaceType.equals("MQ"))
+					&& !interfaceType.equals("MQ") && !interfaceType.equals("CALLABLE") && !interfaceType.equals("WOLA") && !interfaceType.equals("ZRES") && !interfaceType.equals("SHC"))
 				dataOk = false;
 
 			if (!bind.equals("S-S") && !bind.equals("A-S"))
