@@ -62,6 +62,8 @@ public class SLAConsumerAndProvider {
 						+ "\n per designtime la data non deve essere passata e' stata creata quindi una funzione di controllo ah hoch: checkInputData4DesignTime"
 						+ "\n sempre nel caso di designtime il time stamp viene forzato a stringa vuota per compatibilita' con la tipologia runtime");
 		log.info("21.01.2017 inserito un controllo sul consumer che deve essere di tipo : SCOPEN - SCOPEN - SOPEN(IIPARAL)");
+		log.info("15.03.2017 fix per prendere le Application Version che prima scartava");
+		
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
@@ -261,7 +263,7 @@ public class SLAConsumerAndProvider {
 
 		String[] transactions = {
 				"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23RequestSLA",
-				"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ApproveSLARequest" };
+		"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ApproveSLARequest" };
 
 		String avPrimaryType = "http://www.ibm.com/xmlns/prod/serviceregistry/profile/v6r3/GovernanceEnablementModel%23ApplicationVersion";
 
@@ -295,17 +297,26 @@ public class SLAConsumerAndProvider {
 					// 21012017
 					// consumer accettabili: SCOPEN - SCHOST - SOPEN(IIBPARAL)
 					typeService = wsrrutility.getServiceVersionTipologyBybsrURI(bsrURIConsumer, url, user, password);
-					
+
 					typeServiceSubtype = wsrrutility.getServiceVersionSubTipologyBybsrURI(bsrURIConsumer, url, user,
-							
+
 							password);
 					Boolean consumerCompatible = false;
 
-					if (typeServiceSubtype != null && typeService != null) {
+					//15032017 fix per prendere le Application Version che prima scartava
 
-						if (typeService.equals("SCOPEN") || typeService.equals("SCHOST")
-								|| (typeService.equals("SOPEN") & typeServiceSubtype.equals("IIBPARAL"))) {
-							consumerCompatible = true;
+					if (typeService != null && typeService.equals("ApplicationVersion")) {
+
+						consumerCompatible=true;
+
+					} else {
+
+						if (typeServiceSubtype != null && typeService != null) {
+
+							if (typeService.equals("SCOPEN") || typeService.equals("SCHOST")
+									|| (typeService.equals("SOPEN") & typeServiceSubtype.equals("IIBPARAL"))) {
+								consumerCompatible = true;
+							}
 						}
 					}
 
@@ -314,11 +325,11 @@ public class SLAConsumerAndProvider {
 						if (bsrURIConsumer != null && !bsrURIConsumer.contains(">>>***ERROR**>>>")) {
 
 							sldProvider = sb.append("SLD%20-%20").append(provider).append("_").append(providerVersion) // se
-																														// non
-																														// metto
-																														// %20
-																														// da
-																														// 505
+									// non
+									// metto
+									// %20
+									// da
+									// 505
 									.append("_").append(interfaceType).toString();
 
 							bsrURISLD = wsrrutility.getGenericObjectByNameAndPrimaryTypeExtended(sldProvider,
@@ -326,10 +337,10 @@ public class SLAConsumerAndProvider {
 									url, user, password);
 
 							if (bsrURISLD != null && !bsrURISLD.contains(">>>***ERROR**>>>")) { // error
-																								// if
-																								// sld
-																								// not
-																								// defined
+								// if
+								// sld
+								// not
+								// defined
 
 								if (bind.equalsIgnoreCase("S-S")) {
 
@@ -337,13 +348,13 @@ public class SLAConsumerAndProvider {
 											bsrURISLD, url, user, password);
 
 									if (bsrURISLA_SV == null) { // if null no
-																// sla
-																// associated to
-																// sld
+										// sla
+										// associated to
+										// sld
 
 										sb.delete(0, sb.length());
 										sb.append("SLA - ").append(consumer).append(" (").append(consumerVersion)
-												.append(")");
+										.append(")");
 
 										String applicationData = "";
 										String systemData = "";
@@ -409,20 +420,20 @@ public class SLAConsumerAndProvider {
 												consumer, consumerVersion, url, user, password);
 
 										if (acroName != null && !acroName.contains(">>**ERROR**>>")) { // error
-																										// if
-																										// not
-																										// defined
+											// if
+											// not
+											// defined
 
 											bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
 													acroName, "00", avPrimaryType, bsrURISLD, url, user, password);
 
 											if (bsrURISLA_AV == null) { // if
-																		// null
-																		// no
-																		// sla
-																		// associated
-																		// to
-																		// sld
+												// null
+												// no
+												// sla
+												// associated
+												// to
+												// sld
 
 												bsrURIApplicatioVersion = wsrrutility
 														.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(
@@ -433,7 +444,7 @@ public class SLAConsumerAndProvider {
 
 													sb.delete(0, sb.length());
 													sb.append("SLA - ").append(acroName).append(" (").append("00")
-															.append(")");
+													.append(")");
 
 													String applicationData = "";
 													String systemData = "";
@@ -669,7 +680,7 @@ public class SLAConsumerAndProvider {
 								boolean notError = false;
 
 								String[] SLAactivateTransaction = {
-										"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ActivateSLA" };
+								"http://www.ibm.com/xmlns/prod/serviceregistry/lifecycle/v6r3/LifecycleDefinition%23ActivateSLA" };
 
 								if ((bsrURISLA_SV != null || bsrURISLA_AV != null) && !error) {
 
@@ -842,13 +853,13 @@ public class SLAConsumerAndProvider {
 									}
 
 									if (tipology.equalsIgnoreCase("RUNTIME")) { // 22112016
-																				// se
-																				// DESIGNTIME
-																				// non
-																				// bisogna
-																				// aggiorare
-																				// le
-																				// date
+										// se
+										// DESIGNTIME
+										// non
+										// bisogna
+										// aggiorare
+										// le
+										// date
 
 										// update date service activation
 										updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer,
@@ -890,13 +901,13 @@ public class SLAConsumerAndProvider {
 
 								error = true;
 								log.error(" record(" + recNum + ")  Error Consumer not found " + consumer.trim()
-										+ " version :  " + consumerVersion.trim());
+								+ " version :  " + consumerVersion.trim());
 
 							} else {
 
 								error = true;
 								log.error("record(" + recNum + ") error getting Consumer : " + consumer.trim()
-										+ " version : " + consumerVersion);
+								+ " version : " + consumerVersion);
 								log.error("error " + bsrURIConsumer.substring(12, bsrURIConsumer.length()));
 							}
 
