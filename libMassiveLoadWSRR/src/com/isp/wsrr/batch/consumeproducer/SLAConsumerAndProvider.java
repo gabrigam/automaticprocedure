@@ -54,7 +54,7 @@ public class SLAConsumerAndProvider {
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V1.9  Marzo 2017");
+		log.info("Batch SLAConsumerAndProvider V2.0 Marzo 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -63,6 +63,8 @@ public class SLAConsumerAndProvider {
 						+ "\n sempre nel caso di designtime il time stamp viene forzato a stringa vuota per compatibilita' con la tipologia runtime");
 		log.info("21.01.2017 inserito un controllo sul consumer che deve essere di tipo : SCOPEN - SCOPEN - SOPEN(IIPARAL)");
 		log.info("15.03.2017 fix per prendere le Application Version che prima scartava");
+		log.info("24-03.2017 tolta riga che generava exception (voluta) fatto su branch del 1503");
+		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
 		
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
@@ -945,7 +947,7 @@ public class SLAConsumerAndProvider {
 		} catch (Exception ex) {
 			log.error(" record(" + recNum + ")  runtimeError captured");
 			log.error(" record(" + recNum + ") " + ex.getMessage());
-			throw new Exception(ex);
+			//throw new Exception(ex); tolta l'elaborazione deve proseguire 24032017
 		}
 
 	}//
