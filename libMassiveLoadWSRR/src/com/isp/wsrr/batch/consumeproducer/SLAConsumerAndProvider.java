@@ -54,7 +54,7 @@ public class SLAConsumerAndProvider {
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V2.0 Marzo 2017");
+		log.info("Batch SLAConsumerAndProvider V2.1 Aprile 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -65,7 +65,7 @@ public class SLAConsumerAndProvider {
 		log.info("15.03.2017 fix per prendere le Application Version che prima scartava");
 		log.info("24-03.2017 tolta riga che generava exception (voluta) fatto su branch del 1503");
 		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
-		
+		log.info("24-04-2017 nella versione V2.1 e viene utilizzato il metodo nuovo di baselib: getSLAassociatedToSLDExtendedNew (che sostituisce String getSLAassociatedToSLDExtended)");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
@@ -346,7 +346,7 @@ public class SLAConsumerAndProvider {
 
 								if (bind.equalsIgnoreCase("S-S")) {
 
-									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtended(consumer, consumerVersion,
+									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtendedNew(consumer, consumerVersion, //prima usava getSLAassociatedToSLDExtended
 											bsrURISLD, url, user, password);
 
 									if (bsrURISLA_SV == null) { // if null no
