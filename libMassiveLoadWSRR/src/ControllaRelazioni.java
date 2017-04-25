@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import com.isp.wsrr.envelopes.WSRREnvelopes;
 import com.isp.wsrr.utility.WSRRUtility;
 
-public class NormalizzaEndpoints {
+public class ControllaRelazioni {
 
 	private static FileInputStream fis;
 	private static BufferedReader br;
@@ -33,14 +33,32 @@ public class NormalizzaEndpoints {
 	// private static StringTokenizer st = null;
 	// private static ArrayList<String> list;
 
-	protected static Logger log = LogManager.getLogger(NormalizzaEndpoints.class.getName());
+	protected static Logger log = LogManager.getLogger(ControllaRelazioni.class.getName());
 
 	public static void main(String[] args) throws Exception {
 
+		// Runtime.getRuntime().exit(0);
+
+		///////////////////////
+		// sla data utlimo utilizzo in system appl e prod
+		////////////////////////
+
+		String logFileName = System.getProperty("LogFileName");
+
+		if (logFileName != null && logFileName.length() != 0)
+
+			updateLogger(logFileName, "caricamentiISPAppender",
+					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
+
+		// System.out.println("togli blocco!");
+
+		// Runtime.getRuntime().exit(0);
 
 		log.info(
+				
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Aggiornamento proprieta' specifica per gli oggetti della tipologia scelta dell'utente V1.0");		
+		log.info("Verifica se la relazione specificata è presente negli oggetti con la tipologia richieta dell'utente V1.0");
+
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
@@ -49,16 +67,18 @@ public class NormalizzaEndpoints {
 		// check Input parameters
 		if (args.length == 0) {
 
+			if (args.length == 0) {
 
-			System.out.println(
-					"----------------------------------------------------------------------------------------------------------------------");
-			System.out.println(
-					"Errore : fornire i seguenti parametri: (0) Indirizzo WSRR (1) Tipo Oggetto (2) Proprietà (3) Valore (4) Utente (5) Password ");
+				System.out.println(
+						"----------------------------------------------------------------------------------------------------------------------");
+				System.out.println(
+						"Errore : fornire i seguenti parametri: (0) Indirizzo WSRR (1) Tipo Oggetto (2) Relazione (3) Utente (4) Password ");
 
-			System.out.println(
-					"----------------------------------------------------------------------------------------------------------------------");
-			Runtime.getRuntime().exit(0);
+				System.out.println(
+						"----------------------------------------------------------------------------------------------------------------------");
+				Runtime.getRuntime().exit(0);
 
+			}
 		}
 
 		WSRRUtility wsrrutility = new WSRRUtility();
@@ -78,64 +98,53 @@ public class NormalizzaEndpoints {
 
 		if (args[0] != null && args[0].contains("https")) {
 
-			cdb.setUser(args[4]);
-			cdb.setPassword(args[5]);
+			cdb.setUser(args[3]);
+			cdb.setPassword(args[4]);
 		}
-		HashMap bsrURIMap=new HashMap();
+
 		JSONArray soapEpAll=new JSONArray();
-		JSONArray soapEpNew=new JSONArray();
 		
 		soapEpAll=wsrrutility.getAllObjectsSpecifiedByPrimaryType(args[1], cdb.getUrl(),cdb.getUser(), cdb.getPassword());
-		soapEpNew=wsrrutility.getObjectPropertiesDataFromGeneralQuery("@primaryType=%27"+args[1]+"%27%20and%20"+args[2], "&p1=bsrURI", cdb.getUrl(), cdb.getUser(),cdb.getPassword());
 		
 		JSONArray jsae = null;
 		JSONObject jso = null;
 		String bsrURICurrent = null;
 		
-		int i = soapEpNew.length();
+		int i = soapEpAll.length();
 		int j = 0;
-		int upd=0;
-		int upderr=0;
-		log.info("Trovati : "+soapEpAll.length()+" censimenti di tipo : "+args[1]);
-		log.info("Trovati : "+soapEpNew.length() +" censimenti di tipo : "+args[1]+" con la proprietà : "+args[2]+" DEFINITA");
-		log.info("Per i : "+(soapEpAll.length()-soapEpNew.length())+ " censimenti verra' eseguito l'aggiornamento della proprieta'");
-		while (i > j) {
-				jsae = (JSONArray) soapEpNew.getJSONArray(j);
-				jso = (JSONObject) jsae.getJSONObject(0);
-				bsrURICurrent = (String) jso.get("value");
-				bsrURIMap.put(bsrURICurrent, bsrURICurrent);
-				j++;
-		}
-		i = soapEpAll.length();
-		j = 0;
+		int rel=0;
+		int nrel=0;
+		String rc=null;
+		String graph=null;
+		log.info("Trovati : "+i +" censimenti di tipo : "+args[1]);
+		log.info("Tutti gli oggetti verranno analizzati per controllare se la relazione : "+args[2]+ " è definita");
 		while (i > j) {
 				jsae = (JSONArray) soapEpAll.getJSONArray(j);
 				jso = (JSONObject) jsae.getJSONObject(0);
 				bsrURICurrent = (String) jso.get("value");
-				
-				if (bsrURIMap.get(bsrURICurrent) == null) {
-					
-					if (wsrrutility.updateSinglePropertyJSONFormat(bsrURICurrent, args[2], args[3], cdb.getUrl(), cdb.getUser(), cdb.getPassword())) {
-						log.info("Per l'oggetto con chiave : "+bsrURICurrent + " è stata aggiornata la proprieta' con il valore richiesto");
-						upd++;
-					}else {
-						log.info("Per l'oggetto con chiave : "+bsrURICurrent + " è stato riscontrato un errore in fase di aggiornamento della proprietà");
-						upderr++;
+				graph=wsrrutility.getDataFromGraphQuery("@bsrURI='"+bsrURICurrent+"'", cdb.getUrl(), cdb.getUser(), cdb.getPassword());
+				if (graph != null) {					
+					if (graph.indexOf(args[2], 0) == -1) {
+					log.info("Oggetto con chiave : "+bsrURICurrent + " NON CONTIENE la relazione relazione");
+					nrel++;						
 					}
-						
-				}
-				
-				j++;
+					else {
+						log.info("Oggetto con chiave : "+bsrURICurrent + " CONTIENE la relazione relazione");
+						rel++;
+					}
+				} 
+			j++;
 		}
-		log.info("---------------------------------------------------------------------------------------------------------------------------------------");
-		log.info("Totale censimenti di tipo : "+args[1]+" : " +i);
-		log.info("Trovati : "+soapEpNew.length() +" censimenti di tipo : "+args[1]+" con la proprietà : "+args[2]+" DEFINITA");
-		log.info("Aggiornata con successo la proprieta' per : "+upd+ " censimenti");
-		log.info("Riscontrati " +upderr+ " errori in fase di aggiornamento della proprietà");
-		log.info("---------------------------------------------------------------------------------------------------------------------------------------");
+        log.info("---------------------------------------------------------------------------------------------------------------------------------------");
+        log.info("Totale censimenti di tipo : "+args[1]+" : " +i);
+		log.info("Trovati : "+ rel +" censimenti CONTENENTI la relazione richiesta");
+		log.info("Trovati : "+ nrel +" censimenti NON CONTENENTI la relazione richiesta");	
+        log.info("---------------------------------------------------------------------------------------------------------------------------------------");
+			
 		Runtime.getRuntime().exit(0);
 		
 	}
+		
 
 	static void updateLogger(String file_name, String appender_name, String package_name) {
 		LoggerContext context = (LoggerContext) LogManager.getContext(false);
