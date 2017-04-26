@@ -48,7 +48,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 		String logFileName = System.getProperty("LogFileName");
 
 		if (logFileName != null && logFileName.length() != 0)
-			updateLogger(logFileName, "caricamentiISPAppender",
+			updateLogger(logFileName, "caricamentiSSAISPAppender",
 					"com.isp.wsrr.batch.consumeproducer.SSAAcronimoBusinessApplicationAmbito");
 
 		nbplog.info(

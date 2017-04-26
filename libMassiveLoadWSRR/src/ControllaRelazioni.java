@@ -47,8 +47,8 @@ public class ControllaRelazioni {
 
 		if (logFileName != null && logFileName.length() != 0)
 
-			updateLogger(logFileName, "caricamentiISPAppender",
-					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
+			updateLogger(logFileName, "controllaRelazioniAppender",
+					"ControllaRelazioni");
 
 		// System.out.println("togli blocco!");
 
@@ -118,6 +118,7 @@ public class ControllaRelazioni {
 		String graph=null;
 		log.info("Trovati : "+i +" censimenti di tipo : "+args[1]);
 		log.info("Tutti gli oggetti verranno analizzati per controllare se la relazione : "+args[2]+ " è definita");
+		log.info("");	
 		while (i > j) {
 				jsae = (JSONArray) soapEpAll.getJSONArray(j);
 				jso = (JSONObject) jsae.getJSONObject(0);
@@ -125,11 +126,11 @@ public class ControllaRelazioni {
 				graph=wsrrutility.getDataFromGraphQuery("@bsrURI='"+bsrURICurrent+"'", cdb.getUrl(), cdb.getUser(), cdb.getPassword());
 				if (graph != null) {					
 					if (graph.indexOf(args[2], 0) == -1) {
-					log.info("Oggetto con chiave : "+bsrURICurrent + " NON CONTIENE la relazione relazione");
+					log.info("Oggetto con chiave : "+bsrURICurrent + " NON CONTIENE la relazione");
 					nrel++;						
 					}
 					else {
-						log.info("Oggetto con chiave : "+bsrURICurrent + " CONTIENE la relazione relazione");
+						log.info("Oggetto con chiave : "+bsrURICurrent + " CONTIENE la relazione");
 						rel++;
 					}
 				} 
@@ -140,7 +141,7 @@ public class ControllaRelazioni {
 		log.info("Trovati : "+ rel +" censimenti CONTENENTI la relazione richiesta");
 		log.info("Trovati : "+ nrel +" censimenti NON CONTENENTI la relazione richiesta");	
         log.info("---------------------------------------------------------------------------------------------------------------------------------------");
-			
+		log.info("CS");	
 		Runtime.getRuntime().exit(0);
 		
 	}

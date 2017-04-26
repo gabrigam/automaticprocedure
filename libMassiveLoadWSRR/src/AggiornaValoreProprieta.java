@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import com.isp.wsrr.envelopes.WSRREnvelopes;
 import com.isp.wsrr.utility.WSRRUtility;
 
-public class NormalizzaEndpoints {
+public class AggiornaValoreProprieta {
 
 	private static FileInputStream fis;
 	private static BufferedReader br;
@@ -33,10 +33,16 @@ public class NormalizzaEndpoints {
 	// private static StringTokenizer st = null;
 	// private static ArrayList<String> list;
 
-	protected static Logger log = LogManager.getLogger(NormalizzaEndpoints.class.getName());
+	protected static Logger log = LogManager.getLogger(AggiornaValoreProprieta.class.getName());
 
 	public static void main(String[] args) throws Exception {
+		
+		String logFileName = System.getProperty("LogFileName");
 
+		if (logFileName != null && logFileName.length() != 0)
+
+			updateLogger(logFileName, "aggiornaProprietaAppender",
+					"AggiornaValoreProprieta");
 
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
@@ -44,7 +50,7 @@ public class NormalizzaEndpoints {
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
-		System.out.println("");
+		log.info("");
 
 		// check Input parameters
 		if (args.length == 0) {
@@ -98,7 +104,8 @@ public class NormalizzaEndpoints {
 		int upderr=0;
 		log.info("Trovati : "+soapEpAll.length()+" censimenti di tipo : "+args[1]);
 		log.info("Trovati : "+soapEpNew.length() +" censimenti di tipo : "+args[1]+" con la proprietà : "+args[2]+" DEFINITA");
-		log.info("Per i : "+(soapEpAll.length()-soapEpNew.length())+ " censimenti verra' eseguito l'aggiornamento della proprieta'");
+		log.info("Per i : "+(soapEpAll.length()-soapEpNew.length())+ " censimenti verra' eseguito l'aggiornamento della proprieta' : "+ args[2]+ "con il valore: "+args[3]);
+		log.info("");
 		while (i > j) {
 				jsae = (JSONArray) soapEpNew.getJSONArray(j);
 				jso = (JSONObject) jsae.getJSONObject(0);
@@ -119,7 +126,7 @@ public class NormalizzaEndpoints {
 						log.info("Per l'oggetto con chiave : "+bsrURICurrent + " è stata aggiornata la proprieta' con il valore richiesto");
 						upd++;
 					}else {
-						log.info("Per l'oggetto con chiave : "+bsrURICurrent + " è stato riscontrato un errore in fase di aggiornamento della proprietà");
+						log.info("Per l'oggetto con chiave : "+bsrURICurrent + " è stato riscontrato un errore in fase di aggiornamento della proprietà - CONTROLLARE il System.out per il dettaglio sull' Errore");
 						upderr++;
 					}
 						
@@ -130,9 +137,10 @@ public class NormalizzaEndpoints {
 		log.info("---------------------------------------------------------------------------------------------------------------------------------------");
 		log.info("Totale censimenti di tipo : "+args[1]+" : " +i);
 		log.info("Trovati : "+soapEpNew.length() +" censimenti di tipo : "+args[1]+" con la proprietà : "+args[2]+" DEFINITA");
-		log.info("Aggiornata con successo la proprieta' per : "+upd+ " censimenti");
+		if (upd >0) log.info("Aggiornata con successo la proprieta' per : "+upd+ " censimenti");
 		log.info("Riscontrati " +upderr+ " errori in fase di aggiornamento della proprietà");
 		log.info("---------------------------------------------------------------------------------------------------------------------------------------");
+		log.info("CS");
 		Runtime.getRuntime().exit(0);
 		
 	}

@@ -11,27 +11,59 @@
 <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
 </Console>
 
-        <File name="caricamentiISPAppender" fileName="caricamentiNBP.log" immediateFlush="true" append="false"
-        filePattern="caricamento.log" >
+        <File name="caricamentiSLAISPAppender" fileName="caricamentiSLA.log" immediateFlush="true" append="false"
+        filePattern="caricamentiSLA.log" >
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
- <!--    
-       <File name="gablog" fileName="caricamento${date:yyyy-MM-dd-hh-mm-ss}.log" immediateFlush="false" append="false"
-        filePattern="c:/logs/all-${date:yyyy-MM-dd}.%i.log" >
+        
+        <File name="caricamentiSSAISPAppender" fileName="caricamentiSSA.log" immediateFlush="true" append="false"
+        filePattern="caricamentiSSA.log" >
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
--->
+        
+        <File name="controllaRelazioniAppender" fileName="controllaRelazioni.log" immediateFlush="true" append="false"
+        filePattern="controllaRelazioni.log" >
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        
+        <File name="creaRelazioneAppender" fileName="creaRelazioni.log" immediateFlush="true" append="false"
+        filePattern="creaRelazioni.log" >  
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        
+         <File name="aggiornaProprietaAppender" fileName="aggiornaProprieta.log" immediateFlush="true" append="false"
+        filePattern="aggiornaProprieta.log" >  
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
 
 </Appenders>
 
 <Loggers>
+<Logger name="com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider" level="info" additivity="false">
+<appender-ref ref="caricamentiSLAISPAppender" level="info"/>
+</Logger>
+
 <Logger name="com.isp.wsrr.batch.consumeproducer.SSAAcronimoBusinessApplication" level="info" additivity="false">
-<appender-ref ref="caricamentiISPAppender" level="info"/>
+<appender-ref ref="caricamentiSSAISPAppender" level="info"/>
+</Logger>
+
+<Logger name="ControllaRelazioni" level="info" additivity="false">
+<appender-ref ref="controllaRelazioniAppender" level="info"/>
+</Logger>
+
+<Logger name="CreaRelazione" level="info" additivity="false">
+<appender-ref ref="creaRelazioneAppender" level="info"/>
+</Logger>
+
+<Logger name="AggiornaValoreProprieta" level="info" additivity="false">
+<appender-ref ref="aggiornaProprietaAppender" level="info"/>
 </Logger>
 
 <Root level="info" additivity="false">
 <appender-ref ref="console"/>
 <AppenderRef ref="MyFile"/>
 </Root>
+
+
 </Loggers>
 </Configuration>

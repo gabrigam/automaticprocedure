@@ -45,13 +45,8 @@ public class SLAConsumerAndProvider {
 
 		if (logFileName != null && logFileName.length() != 0)
 
-			updateLogger(logFileName, "caricamentiISPAppender",
+			updateLogger(logFileName, "caricamentiSLAISPAppender",
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
-
-		// System.out.println("togli blocco!");
-
-		// Runtime.getRuntime().exit(0);
-
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("Batch SLAConsumerAndProvider V2.1 Aprile 2017");
@@ -68,8 +63,7 @@ public class SLAConsumerAndProvider {
 		log.info("24-04-2017 nella versione V2.1 e viene utilizzato il metodo nuovo di baselib: getSLAassociatedToSLDExtendedNew (che sostituisce String getSLAassociatedToSLDExtended)");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-
-		System.out.println("");
+		log.info("");
 
 		// check Input parameters
 		if (args.length == 0) {
@@ -126,8 +120,6 @@ public class SLAConsumerAndProvider {
 		log.info("ALL/ONLYDATE " + args[2]);
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-
-		System.out.println("WSRR URL " + cdb.getUrl());
 
 		try {
 
