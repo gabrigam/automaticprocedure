@@ -49,7 +49,7 @@ public class SLAConsumerAndProvider {
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V2.1 Aprile 2017");
+		log.info("Batch SLAConsumerAndProvider V2.2 Maggio 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -61,6 +61,7 @@ public class SLAConsumerAndProvider {
 		log.info("24-03.2017 tolta riga che generava exception (voluta) fatto su branch del 1503");
 		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
 		log.info("24-04-2017 nella versione V2.1 e viene utilizzato il metodo nuovo di baselib: getSLAassociatedToSLDExtendedNew (che sostituisce String getSLAassociatedToSLDExtended)");
+		log.info("11-05-2017 aggiunta la gestione della specializzazione dell' endpoint per getEndpointInfo");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
@@ -953,8 +954,9 @@ public class SLAConsumerAndProvider {
 
 		log.info("record(" + recNum + ") get endpoint info : provider - " + provider + " version - " + providerVersion
 				+ " interface type - " + interfaceType);
-
-		String endpointData = wsrrutility.getEndpointInfo(provider, providerVersion, interfaceType, environment, url,
+		
+        //11052017 utilizzo metodo che supporta la specializzazione
+		String endpointData = wsrrutility.getEndpointInfo(provider, providerVersion, interfaceType, environment,"", url,
 				user, password);
 
 		String bsrURIEndpoint = null;
