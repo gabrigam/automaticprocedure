@@ -32,6 +32,8 @@ public class SLAConsumerAndProvider {
 	// private static ArrayList<String> list;
 
 	protected static Logger log = LogManager.getLogger(SLAConsumerAndProvider.class.getName());
+	
+	protected static boolean performanceDataLog=false;
 
 	public static void main(String[] args) throws Exception {
 
@@ -62,6 +64,7 @@ public class SLAConsumerAndProvider {
 		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
 		log.info("24-04-2017 nella versione V2.1 e viene utilizzato il metodo nuovo di baselib: getSLAassociatedToSLDExtendedNew (che sostituisce String getSLAassociatedToSLDExtended)");
 		log.info("11-05-2017 aggiunta la gestione della specializzazione dell' endpoint per getEndpointInfo");
+		log.info("14-05-2017 aggiunta la tracciatura dei dati di performance");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
@@ -79,6 +82,8 @@ public class SLAConsumerAndProvider {
 			Runtime.getRuntime().exit(0); // brutale :)
 
 		}
+		
+		if (args.length !=6) performanceDataLog=true;
 
 		if (!args[2].equalsIgnoreCase("ALL") && !args[2].equalsIgnoreCase("ONLYDATE")) {
 
@@ -201,11 +206,13 @@ public class SLAConsumerAndProvider {
 							if (!tipology.equalsIgnoreCase("DESIGNTIME")) {
 								providerInvocationTs = paramArray[6];
 							}
-
+							Long ti = System.nanoTime();
 							slaconsumerandprovider.makeSLAConsumerAndProvider(cdb, environment.trim(), tipology.trim(),
 									paramArray[1].trim(), paramArray[3].trim(), paramArray[2].trim(),
 									paramArray[4].trim(), paramArray[5].trim(), paramArray[0].trim(),
 									providerInvocationTs.trim(), args[2], args[1], recNum);
+							Long tf = System.nanoTime();
+							SLAConsumerAndProvider.logDuration(" current Record("+recNum+")", ti, tf);
 						} else {
 							// user request a skip
 							if (line != null) {
@@ -253,6 +260,9 @@ public class SLAConsumerAndProvider {
 
 		String typeService = "";
 		String typeServiceSubtype = "";
+		
+		long ti=0L;
+		long tf=0L;
 
 		boolean error = false;
 
@@ -279,23 +289,35 @@ public class SLAConsumerAndProvider {
 			user = cdb.getUser();
 			password = cdb.getPassword();
 
+			
+			ti = System.nanoTime();
 			bsrURIProvider = wsrrutility.getGenericObjectByNameAndVersionExtended(provider.trim(),
 					providerVersion.trim(), url, user, password);
-
+			tf = System.nanoTime();
+			SLAConsumerAndProvider.logDuration(" QUERY 1 ", ti, tf);
+			
 			if (bsrURIProvider != null && !bsrURIProvider.contains(">>>***ERROR**>>>")) {
 
 				if (onlyDate != null && !onlyDate.equalsIgnoreCase("ONLYDATE")) {
 
+					ti = System.nanoTime();
 					bsrURIConsumer = wsrrutility.getGenericObjectByNameAndVersionExtended(consumer.trim(),
 							consumerVersion.trim(), url, user, password);
+					tf = System.nanoTime();				
+					SLAConsumerAndProvider.logDuration(" QUERY 2 ",ti, tf);
 
 					// 21012017
 					// consumer accettabili: SCOPEN - SCHOST - SOPEN(IIBPARAL)
+					ti = System.nanoTime();
 					typeService = wsrrutility.getServiceVersionTipologyBybsrURI(bsrURIConsumer, url, user, password);
-
-					typeServiceSubtype = wsrrutility.getServiceVersionSubTipologyBybsrURI(bsrURIConsumer, url, user,
-
-							password);
+					tf = System.nanoTime();
+					SLAConsumerAndProvider.logDuration(" QUERY 3 ",ti, tf);
+					
+					ti = System.nanoTime();
+					typeServiceSubtype = wsrrutility.getServiceVersionSubTipologyBybsrURI(bsrURIConsumer, url, user,password);
+					tf = System.nanoTime();
+					SLAConsumerAndProvider.logDuration(" QUERY 4 ",ti, tf);
+					
 					Boolean consumerCompatible = false;
 
 					//15032017 fix per prendere le Application Version che prima scartava
@@ -326,10 +348,12 @@ public class SLAConsumerAndProvider {
 									// da
 									// 505
 									.append("_").append(interfaceType).toString();
-
+							ti = System.nanoTime();
 							bsrURISLD = wsrrutility.getGenericObjectByNameAndPrimaryTypeExtended(sldProvider,
 									"http://www.ibm.com/xmlns/prod/serviceregistry/profile/v6r3/GovernanceEnablementModel%23ServiceLevelDefinition",
 									url, user, password);
+							tf = System.nanoTime();
+							SLAConsumerAndProvider.logDuration(" QUERY 5 ",ti, tf);
 
 							if (bsrURISLD != null && !bsrURISLD.contains(">>>***ERROR**>>>")) { // error
 								// if
@@ -338,9 +362,11 @@ public class SLAConsumerAndProvider {
 								// defined
 
 								if (bind.equalsIgnoreCase("S-S")) {
-
+									ti = System.nanoTime();
 									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtendedNew(consumer, consumerVersion, //prima usava getSLAassociatedToSLDExtended
 											bsrURISLD, url, user, password);
+									tf = System.nanoTime();
+									SLAConsumerAndProvider.logDuration(" QUERY 6 ",ti, tf);
 
 									if (bsrURISLA_SV == null) { // if null no
 										// sla
@@ -364,29 +390,40 @@ public class SLAConsumerAndProvider {
 
 										envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(sb.toString(),
 												"", applicationData, systemData, productionData, bsrURISLD);
-
+										ti = System.nanoTime();
 										bsrURISLA_SV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url,
 												user, password);
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 7 ",ti, tf);
 
 										if (bsrURISLA_SV != null) {
 
 											// add SLA to consumer by
 											// gep63_consume
 											// relations
+											ti = System.nanoTime();
 											if (wsrrutility.updateRelationShip(bsrURIConsumer, "gep63_consumes",
 													bsrURISLA_SV, url, user, password)) {
-
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 8 ",ti, tf);
+												ti = System.nanoTime();
 												if (!wsrrutility.changeGovernanceState(bsrURISLA_SV, transactions, url,
 														user, // approved
 														password)) {
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 9 ",ti, tf);
 													error = true;
 													log.error("record(" + recNum
 															+ ") Error on changing SLA state to Inactive SLA : "
 															+ bsrURISLA_SV);
+												} else {//new
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 9 ",ti, tf);
 												}
 
 											} else {
-
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 8 ",ti, tf);
 												error = true;
 												log.error("record(" + recNum
 														+ ") Error on updating SLA relation during binding to object (BusinessService) : "
@@ -411,16 +448,21 @@ public class SLAConsumerAndProvider {
 									if (!error) { // here acronimo
 
 										// get acroname
+										ti = System.nanoTime();
 										acroName = wsrrutility.getOrganizationFromGenericObjectByNameAndVersionExtended(
 												consumer, consumerVersion, url, user, password);
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 10 ",ti, tf);
 
 										if (acroName != null && !acroName.contains(">>**ERROR**>>")) { // error
 											// if
 											// not
 											// defined
-
+											ti = System.nanoTime();
 											bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
 													acroName, "00", avPrimaryType, bsrURISLD, url, user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 11 ",ti, tf);
 
 											if (bsrURISLA_AV == null) { // if
 												// null
@@ -429,10 +471,12 @@ public class SLAConsumerAndProvider {
 												// associated
 												// to
 												// sld
-
+												ti = System.nanoTime();
 												bsrURIApplicatioVersion = wsrrutility
 														.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(
 																acroName, "00", avPrimaryType, url, user, password);
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 12 ",ti, tf);
 
 												if (bsrURIApplicatioVersion != null
 														&& !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) {
@@ -456,27 +500,36 @@ public class SLAConsumerAndProvider {
 													envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(
 															sb.toString(), "", applicationData, systemData,
 															productionData, bsrURISLD);
-
+													
+													ti = System.nanoTime();
 													bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA,
 															"POST", url, user, password);
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 13 ",ti, tf);
 
 													if (bsrURISLA_AV != null) {
-
+														ti = System.nanoTime();
 														if (wsrrutility.updateRelationShip(bsrURIApplicatioVersion,
 																"gep63_consumes", bsrURISLA_AV, url, user, password)) {
-
+															tf = System.nanoTime();
+															SLAConsumerAndProvider.logDuration(" QUERY 14 ",ti, tf);
+															ti = System.nanoTime();
 															if (wsrrutility.changeGovernanceState(bsrURISLA_AV,
 																	transactions, url, user, password)) {
-
+															   tf = System.nanoTime();
+															   SLAConsumerAndProvider.logDuration(" QUERY 15 ",ti, tf);
 															} else {
+																tf = System.nanoTime();
+																SLAConsumerAndProvider.logDuration(" QUERY 15 ",ti, tf);
 																error = true;
-
 																log.error("record(" + recNum
 																		+ ") Error on changing SLA(Business Application) state to Inactive SLA : "
 																		+ bsrURISLA_AV);
 															}
 
 														} else {
+															tf = System.nanoTime();
+															SLAConsumerAndProvider.logDuration(" QUERY 14 ",ti, tf);
 															error = true;
 
 															log.error("record(" + recNum
@@ -541,9 +594,11 @@ public class SLAConsumerAndProvider {
 									// bsrURISLA_AV
 
 									if (!error && bsrURISLA_SV != null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
-
+										ti = System.nanoTime(); 
 										error = updateDateSLA(wsrrutility, environment, bsrURISLA_SV,
 												providerInvocationTs, bind, recNum, url, user, password);
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 16 ",ti, tf);
 
 										if (error) {
 
@@ -554,8 +609,11 @@ public class SLAConsumerAndProvider {
 
 									if (!error && bsrURISLA_AV != null && !tipology.equalsIgnoreCase("DESIGNTIME")) {
 
+										ti = System.nanoTime(); 
 										error = updateDateSLA(wsrrutility, environment, bsrURISLA_AV,
 												providerInvocationTs, bind, recNum, url, user, password);
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 17 ",ti, tf);
 
 										if (error) {
 
@@ -567,14 +625,19 @@ public class SLAConsumerAndProvider {
 								} else { // A-S
 
 									// new
+									ti = System.nanoTime();
 									bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(consumer,
 											"00", avPrimaryType, bsrURISLD, url, user, password);
+									tf = System.nanoTime();
+									SLAConsumerAndProvider.logDuration(" QUERY 18 ",ti, tf);
 
 									if (bsrURISLA_AV == null) {
-
+										ti = System.nanoTime();
 										bsrURIApplicatioVersion = wsrrutility
 												.getGenericObjectByNameAndVersionAndPrimaryTypeExtended(consumer, "00",
 														avPrimaryType, url, user, password);
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 19 ",ti, tf);
 
 										if (bsrURIApplicatioVersion != null
 												&& !bsrURIApplicatioVersion.contains(">>**ERROR**>>")) { // cambiare
@@ -596,24 +659,33 @@ public class SLAConsumerAndProvider {
 											envelopeSLA = wsrrenvelopes.createServiceLevelAgreementXMLDAta(
 													sb.toString(), "", applicationData, systemData, productionData,
 													bsrURISLD);
-
+											ti = System.nanoTime();
 											bsrURISLA_AV = wsrrutility.createWSRRGenericObject(envelopeSLA, "POST", url,
 													user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 20 ",ti, tf);
 
 											if (bsrURISLA_AV != null) {
-
+												ti = System.nanoTime();
 												if (wsrrutility.updateRelationShip(bsrURIApplicatioVersion,
 														"gep63_consumes", bsrURISLA_AV, url, user, password)) {
-
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 21 ",ti, tf);
+													ti = System.nanoTime();
 													if (wsrrutility.changeGovernanceState(bsrURISLA_AV, transactions,
 															url, user, password)) {
-
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 22 ",ti, tf);
 													} else {
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 22 ",ti, tf);
 														error = true;
 														log.error("record(" + recNum
 																+ ") Error on changing SLA(Business Application) state to Inactive ");
 													}
 												} else {
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 21 ",ti, tf);
 													error = true;
 													log.error("record(" + recNum
 															+ ") Error on updating SLA relation during binding to object (ApplicationVersion) : "
@@ -659,10 +731,11 @@ public class SLAConsumerAndProvider {
 
 									// update date for SLA: bsrURISLA_AV
 									if (!error && bsrURISLA_AV != null) {
-
+										ti = System.nanoTime();
 										error = updateDateSLA(wsrrutility, environment, bsrURISLA_AV,
 												providerInvocationTs, bind, recNum, url, user, password);
-
+										tf = System.nanoTime();
+										SLAConsumerAndProvider.logDuration(" QUERY 23 ",ti, tf);
 										if (error) {
 
 											log.error("record(" + recNum + ") Error updating Date on SLA : "
@@ -682,21 +755,27 @@ public class SLAConsumerAndProvider {
 									if (tipology.equalsIgnoreCase("RUNTIME")) {
 
 										if (bsrURISLA_SV != null) {
-
+											ti = System.nanoTime();
 											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV,
 													"gpx63_RUNTIME", "Y", url, user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 24 ",ti, tf);
 
 											if (notError) {
 
 												boolean changeGovernancestate = true;
-
+												ti = System.nanoTime();
 												String slaState = wsrrutility.checkClassification(bsrURISLA_SV,
 														activeStateSLA, url, user, password);
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 25 ",ti, tf);
 
 												if (slaState == null) {
-
+													ti = System.nanoTime();
 													slaState = wsrrutility.checkClassification(bsrURISLA_SV,
 															inactiveStateSLA, url, user, password);
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 26 ",ti, tf);
 
 													if (slaState == null) {
 
@@ -733,16 +812,21 @@ public class SLAConsumerAndProvider {
 												}
 
 												if (notError && changeGovernancestate) {// was!
-
+													ti = System.nanoTime();
 													if (!wsrrutility.changeGovernanceState(bsrURISLA_SV,
 															SLAactivateTransaction, url, user, password)) {
-
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 27 ",ti, tf);
 														notError = false;
 
 														log.error("record(" + recNum
 																+ ") Error during change state from INACTIVE to ACTIVE for SLA bsrURI : "
 																+ bsrURISLA_SV
 																+ " check if SLD governance state is Approved");
+													}else {
+														//new
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 27 ",ti, tf);
 													}
 
 												}
@@ -753,21 +837,27 @@ public class SLAConsumerAndProvider {
 										}
 
 										if (bsrURISLA_AV != null) {
-
+											ti = System.nanoTime();
 											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV,
 													"gpx63_RUNTIME", "Y", url, user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 28 ",ti, tf);
 
 											if (notError) {
 
 												boolean changeGovernancestate = true;
-
+												ti = System.nanoTime();
 												String slaState = wsrrutility.checkClassification(bsrURISLA_AV,
 														activeStateSLA, url, user, password);
-
+												tf = System.nanoTime();
+												SLAConsumerAndProvider.logDuration(" QUERY 29 ",ti, tf);
+												
 												if (slaState == null) {
-
+													ti = System.nanoTime();
 													slaState = wsrrutility.checkClassification(bsrURISLA_AV,
 															inactiveStateSLA, url, user, password);
+													tf = System.nanoTime();
+													SLAConsumerAndProvider.logDuration(" QUERY 30 ",ti, tf);
 
 													if (slaState == null) {
 
@@ -804,10 +894,11 @@ public class SLAConsumerAndProvider {
 												}
 
 												if (notError && changeGovernancestate) {
-
+													ti = System.nanoTime();
 													if (!wsrrutility.changeGovernanceState(bsrURISLA_AV,
 															SLAactivateTransaction, url, user, password)) {
-
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 31 ",ti, tf);
 														notError = false;
 
 														log.error("record(" + recNum
@@ -815,6 +906,10 @@ public class SLAConsumerAndProvider {
 																+ bsrURISLA_AV
 																+ " check if SLD governance state is Approved");
 
+													} else {
+														//new
+														tf = System.nanoTime();
+														SLAConsumerAndProvider.logDuration(" QUERY 31 ",ti, tf);
 													}
 												}
 											} else
@@ -826,9 +921,11 @@ public class SLAConsumerAndProvider {
 									} else { // DESIGNTIME
 
 										if (bsrURISLA_SV != null) {
-
+											ti = System.nanoTime();
 											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_SV,
 													"gpx63_DESIGNTIME", "Y", url, user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 32 ",ti, tf);
 
 											if (!notError)
 												log.error("record(" + recNum + ") Error updating property gpx63_"
@@ -836,9 +933,11 @@ public class SLAConsumerAndProvider {
 										}
 
 										if (bsrURISLA_AV != null) {
-
+											ti = System.nanoTime();
 											notError = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA_AV,
 													"gpx63_DESIGNTIME", "Y", url, user, password);
+											tf = System.nanoTime();
+											SLAConsumerAndProvider.logDuration(" QUERY 33 ",ti, tf);
 
 											if (!notError)
 												log.error("record(" + recNum + ") Error updating property gpx63_"
@@ -951,13 +1050,18 @@ public class SLAConsumerAndProvider {
 			String user, String password) {
 
 		boolean result = true;
+		long ti=0L;
+		long tf=0L;
 
 		log.info("record(" + recNum + ") get endpoint info : provider - " + provider + " version - " + providerVersion
 				+ " interface type - " + interfaceType);
 		
         //11052017 utilizzo metodo che supporta la specializzazione
+		ti = System.nanoTime();
 		String endpointData = wsrrutility.getEndpointInfo(provider, providerVersion, interfaceType, environment,"", url,
 				user, password);
+		tf = System.nanoTime();
+		SLAConsumerAndProvider.logDuration(" QUERY 34 ",ti, tf);
 
 		String bsrURIEndpoint = null;
 		String firstUsedTs = null;
@@ -978,7 +1082,10 @@ public class SLAConsumerAndProvider {
 				dataUltimoUtilizzo = "sm63_DATA_ULTIMO_UTILIZZO_MQM";
 
 				jsa = null;
+				ti = System.nanoTime();
 				jsa = new JSONArray(wsrrutility.getManualMQEndpointInfo(bsrURIEndpoint, url, user, password));
+				tf = System.nanoTime();
+				SLAConsumerAndProvider.logDuration(" QUERY 35 ",ti, tf);
 
 				if (jsa != null && jsa.length() != 0) {
 
@@ -1007,17 +1114,21 @@ public class SLAConsumerAndProvider {
 			try {
 
 				if (firstUsedTs == null || firstUsedTs.length() == 0) {
-
+					ti = System.nanoTime();
 					result = wsrrutility.updateSinglePropertyJSONFormat(bsrURIEndpoint, dataPrimoUtilizzo,
 							providerInvocationTs, url, user, password);
+					tf = System.nanoTime();
+					SLAConsumerAndProvider.logDuration(" QUERY 36 ",ti, tf);
 
 					if (result) {
 
 						log.info("record(" + recNum + ") Updated " + dataPrimoUtilizzo + " for endpoint : "
 								+ bsrURIEndpoint + " to : " + providerInvocationTs);
-
+						ti = System.nanoTime();
 						result = wsrrutility.updateSinglePropertyJSONFormat(bsrURIEndpoint, dataUltimoUtilizzo,
 								providerInvocationTs, url, user, password);
+						tf = System.nanoTime();
+						SLAConsumerAndProvider.logDuration(" QUERY 37 ",ti, tf);
 
 						if (!result) {
 
@@ -1032,14 +1143,18 @@ public class SLAConsumerAndProvider {
 								+ bsrURIEndpoint);
 
 				} else {
-
+					ti = System.nanoTime();
 					if (!wsrrutility.updateSinglePropertyJSONFormat(bsrURIEndpoint, dataUltimoUtilizzo,
 							providerInvocationTs, url, user, password)) {
+						tf = System.nanoTime();
+						SLAConsumerAndProvider.logDuration(" QUERY 38 ",ti, tf);
 						result = false;
 						log.error("record(" + recNum + ")  Error on updating " + dataUltimoUtilizzo + " for endpoint : "
 								+ bsrURIEndpoint);
 
 					} else
+						tf = System.nanoTime();
+						SLAConsumerAndProvider.logDuration(" QUERY 38 ",ti, tf);
 						log.info("record(" + recNum + ") Updated " + dataUltimoUtilizzo + " for endpoint : "
 								+ bsrURIEndpoint + " to : " + providerInvocationTs);
 				}
@@ -1066,14 +1181,17 @@ public class SLAConsumerAndProvider {
 			String providerInvocationTs, String bind, int recNum, String url, String user, String password) {
 
 		boolean result = true;
+		Long ti=0L;
+		Long tf=0L;
 
 		// mettere valore precedente
 
 		if (environment.trim().equals("Application")) {
-
+			ti = System.nanoTime();
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL",
 					providerInvocationTs, url, user, password);
-
+			tf = System.nanoTime();
+			SLAConsumerAndProvider.logDuration(" QUERY 39 ",ti, tf);
 			if (result) {
 				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_APPL for SLA : "
 						+ bsrURISLA + " type : " + bind);
@@ -1087,9 +1205,11 @@ public class SLAConsumerAndProvider {
 
 		}
 		if (environment.trim().equals("SystemTest")) {
-
+			ti = System.nanoTime();
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST",
 					providerInvocationTs, url, user, password);
+			tf = System.nanoTime();
+			SLAConsumerAndProvider.logDuration(" QUERY 40 ",ti, tf);
 
 			if (result) {
 				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_SYST for SLA : "
@@ -1104,10 +1224,11 @@ public class SLAConsumerAndProvider {
 
 		}
 		if (environment.trim().equals("Produzione")) {
-
+			ti = System.nanoTime();
 			result = wsrrutility.updateSinglePropertyJSONFormat(bsrURISLA, "gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD",
 					providerInvocationTs, url, user, password);
-
+			tf = System.nanoTime();
+			SLAConsumerAndProvider.logDuration(" QUERY 41 ",ti, tf);
 			if (result) {
 				log.info("record(" + recNum + ")  Updated SLA gpx63_DATA_ULTIMO_UTILIZZO_LEGAME_PROD for SLA : "
 						+ bsrURISLA + " type : " + bind);
@@ -1224,4 +1345,8 @@ public class SLAConsumerAndProvider {
 
 		context.updateLoggers();
 	}
+	private static void logDuration(String target,double ti,double tf) {
+		if (performanceDataLog) log.info("-------Performance Data---->["+target+"] duration (ms) " + (tf-ti)/1e6);
+	}
+	
 }
