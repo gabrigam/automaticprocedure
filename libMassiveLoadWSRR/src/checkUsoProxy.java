@@ -92,10 +92,12 @@ public class checkUsoProxy {
 		
 		baseQuery=baseQuery.replaceAll("%TYPE%", args[1]);
 		
-		allNAMES=wsrrutility.getObjectPropertiesDataFromGeneralQueryExtended(baseQuery,"&p1=name&p2=bsrURI", cdb.getUrl(), cdb.getUser(),cdb.getPassword());		
+		allNAMES=wsrrutility.getObjectPropertiesDataFromGeneralQueryExtended(baseQuery,"&p1=name&p2=bsrURI", cdb.getUrl(), cdb.getUser(),cdb.getPassword());
 		
 		int i = allNAMES.length();
 		int j = 0;
+		
+		System.out.println("Trovati : "+i + " Servizi da Analizzare..\n");
 		
 		while (i > j) {
 			jsae = (JSONArray) allNAMES.getJSONArray(j);
