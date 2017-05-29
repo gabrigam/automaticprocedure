@@ -42,6 +42,11 @@ public class SLAConsumerAndProvider {
 		///////////////////////
 		// sla data utlimo utilizzo in system appl e prod
 		////////////////////////
+		
+		
+		///////////23052017////////
+		//getSLAassociatedToSLDExtendedNew da usare al posto di getSLAassociatedToSLDExtended [getSLAassociatedToSLDExtendedNew è da testare]
+		//getSLAassociatedToSLDWithPrimaryTypeExtended è da ottimizzare nel codice c'e' il fake da controllare
 
 		String logFileName = System.getProperty("LogFileName");
 
@@ -51,7 +56,7 @@ public class SLAConsumerAndProvider {
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V2.2 Maggio 2017");
+		log.info("Batch SLAConsumerAndProvider V2.3 Maggio 2017");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -363,7 +368,8 @@ public class SLAConsumerAndProvider {
 
 								if (bind.equalsIgnoreCase("S-S")) {
 									ti = System.nanoTime();
-									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtendedNew(consumer, consumerVersion, //prima usava getSLAassociatedToSLDExtended
+									//23052017 riporto getSLAassociatedToSLDExtended dato che quella con New è da testare bene
+									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtended(consumer, consumerVersion, 
 											bsrURISLD, url, user, password);
 									tf = System.nanoTime();
 									SLAConsumerAndProvider.logDuration(" QUERY 6 ",ti, tf);
