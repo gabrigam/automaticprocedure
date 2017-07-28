@@ -11,6 +11,12 @@
 <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
 </Console>
 
+
+        <File name="caricamentiMassiviISPAppender" fileName="caricamentiMassivi.log" immediateFlush="true" append="false"
+        filePattern="caricamentiMassivi.log.log" >
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+
         <File name="caricamentiSLAISPAppender" fileName="caricamentiSLA.log" immediateFlush="true" append="false"
         filePattern="caricamentiSLA.log" >
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
@@ -39,6 +45,11 @@
 </Appenders>
 
 <Loggers>
+
+<Logger name="com.isp.wsrr.batch.consumeproducer.WSRRMassiveLoaderFromFile" level="info" additivity="false">
+<appender-ref ref="caricamentiMassiviISPAppender" level="info"/>
+</Logger>
+
 <Logger name="com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider" level="info" additivity="false">
 <appender-ref ref="caricamentiSLAISPAppender" level="info"/>
 </Logger>
@@ -63,7 +74,6 @@
 <appender-ref ref="console"/>
 <AppenderRef ref="MyFile"/>
 </Root>
-
 
 </Loggers>
 </Configuration>
