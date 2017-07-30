@@ -81,13 +81,12 @@ public class WSRRMassiveLoaderFromFile {
 		String action_ = args[0] + "/rest/bpm/wle/v1/service/" + serviceName + "?action=start&params=";
 		HashMap headerMap = new HashMap();
 		headerMap.put("Content-Type", "application/json ;  charset=UTF-8");
-
+		int recNum = 1;
+		int ok=0;
 		try {
 
 			fis = new FileInputStream(args[1]);
 			br = new BufferedReader(new InputStreamReader(fis));
-			int recNum = 1;
-
 			boolean first = true;
 			nbplog.info("Start reading file: " + args[1]);
 
@@ -130,6 +129,11 @@ public class WSRRMassiveLoaderFromFile {
 								nbplog.error("Result for Record # " + recNum + "---> " + responseMap.get(keycodeMessage)
 										+ " - " + responseMap.get(keyResponseMessage) + " - "
 										+ responseMap.get(keyErrorMessage));
+								//Creazione Eseguita Correttamente 
+								
+								if (((String)responseMap.get(keyResponseMessage)).indexOf("Creazione Eseguita Correttamente")!= -1) {
+									ok++;
+								}
 							}
 						} catch (Exception ex) {
 							nbplog.error("Exception for Record # " + recNum);
@@ -152,6 +156,7 @@ public class WSRRMassiveLoaderFromFile {
 			Runtime.getRuntime().exit(0);
 		}
 
+		nbplog.info("Totale Record/s Elaborati : "+(recNum-1) +" Totale Censimenti Creati : "+ok);
 		nbplog.info("Batch Caricamenti Massivi V1.0 Luglio 2017 ... CS");
 	}
 
