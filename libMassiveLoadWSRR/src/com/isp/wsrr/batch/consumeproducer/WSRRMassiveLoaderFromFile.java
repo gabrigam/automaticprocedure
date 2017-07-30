@@ -41,7 +41,7 @@ public class WSRRMassiveLoaderFromFile {
 	private static FileInputStream fis;
 	private static BufferedReader br;
 	private static String line = null;
-	
+
 	private static String keyResponseMessage = "responseMessage";
 	private static String keycodeMessage = "codeMessage";
 	private static String keyErrorMessage = "errorMessage";
@@ -93,45 +93,63 @@ public class WSRRMassiveLoaderFromFile {
 
 			while ((line = br.readLine()) != null) {
 
-				String[] input = line.split(";");
-
-				nbplog.info("Record # " + recNum + ": " + line);
-
-				String jsonBO = "{\"DatiRichiestiSHOST\":{\"NOME\":\"%NOME%\",\"ACRONIMO\":\"%ACRONIMO%\",\"SSA\":\"%SSA%\",\"DESCRIZIONE\":\"%DESCRIZIONE%\",\"DESCRIZIONE_ESTESA\":\"%DESCRIZIONE_ESTESA%\",\"PGM_SERVIZIO\":\"%PGM_SERVIZIO%\",\"TRANS_SERVIZIO\":\"%TRANS_SERVIZIO%\"}}";
-
-				jsonBO = jsonBO.replaceAll("%NOME%", input[0]);
-				jsonBO = jsonBO.replaceAll("%ACRONIMO%", input[1]);
-				jsonBO = jsonBO.replaceAll("%SSA%", input[2]);
-				jsonBO = jsonBO.replaceAll("%DESCRIZIONE%", input[3]);
-				jsonBO = jsonBO.replaceAll("%DESCRIZIONE_ESTESA%", input[3]);
-				jsonBO = jsonBO.replaceAll("%PGM_SERVIZIO%", input[4]);
-				jsonBO = jsonBO.replaceAll("%TRANS_SERVIZIO%", input[5]);
-
-				jsonBO = URLEncoder.encode(jsonBO, "UTF-8");
-
-				action = action_ + jsonBO + "&createTask=false&parts=all";
-
-				HashMap responseMap = null;
-
 				try {
-					responseMap = Rest.doRest("POST", action, "", headerMap, args[2], args[3], true, -1);
 
-					if (responseMap != null) {
-						nbplog.error("Result for Record # "+recNum+ "---> "+responseMap.get(keycodeMessage)+" - " +responseMap.get(keyResponseMessage)+" - "+responseMap.get(keyErrorMessage));
+					String[] input = line.split(";");
+
+					if (input[0].length() != 0 && input[1].length() != 0 && input[3].length() != 0
+							&& input[4].length() != 0 && input[5].length() != 0) {
+
+						nbplog.info("Record # " + recNum + ": " + line);
+
+						String jsonBO = "{\"DatiRichiestiSHOST\":{\"NOME\":\"%NOME%\",\"ACRONIMO\":\"%ACRONIMO%\",\"SSA\":\"%SSA%\",\"DESCRIZIONE\":\"%DESCRIZIONE%\",\"DESCRIZIONE_ESTESA\":\"%DESCRIZIONE_ESTESA%\",\"PGM_SERVIZIO\":\"%PGM_SERVIZIO%\",\"TRANS_SERVIZIO\":\"%TRANS_SERVIZIO%\"}}";
+
+						String ssa = input[2];
+
+						if (ssa.length() == 0)
+							ssa = input[1].substring(0, 2);
+
+						jsonBO = jsonBO.replaceAll("%NOME%", input[0]);
+						jsonBO = jsonBO.replaceAll("%ACRONIMO%", input[1]);
+						jsonBO = jsonBO.replaceAll("%SSA%", ssa);
+						jsonBO = jsonBO.replaceAll("%DESCRIZIONE%", input[3]);
+						jsonBO = jsonBO.replaceAll("%DESCRIZIONE_ESTESA%", input[3]);
+						jsonBO = jsonBO.replaceAll("%PGM_SERVIZIO%", input[4]);
+						jsonBO = jsonBO.replaceAll("%TRANS_SERVIZIO%", input[5]);
+
+						jsonBO = URLEncoder.encode(jsonBO, "UTF-8");
+
+						action = action_ + jsonBO + "&createTask=false&parts=all";
+
+						HashMap responseMap = null;
+
+						try {
+							responseMap = Rest.doRest("POST", action, "", headerMap, args[2], args[3], true, -1);
+
+							if (responseMap != null) {
+								nbplog.error("Result for Record # " + recNum + "---> " + responseMap.get(keycodeMessage)
+										+ " - " + responseMap.get(keyResponseMessage) + " - "
+										+ responseMap.get(keyErrorMessage));
+							}
+						} catch (Exception ex) {
+							nbplog.error("Exception for Record # " + recNum);
+							ex.printStackTrace();
+						}
+
+					} else {
+						nbplog.error("Record # " + recNum + " contains invalid data");
 					}
 				} catch (Exception ex) {
-					nbplog.error("Exception for Record # "+recNum);
-					ex.printStackTrace();
+					
+					nbplog.error("Record # " + recNum + " contains invalid data");
 				}
-				
-            recNum++;
-            
+				recNum++;
+
 			}
 
 		} catch (IOException e) {
 			nbplog.error("Exception File : " + args[1] + " not exist / not redeable!");
 			Runtime.getRuntime().exit(0);
-
 		}
 
 		nbplog.info("Batch Caricamenti Massivi V1.0 Luglio 2017 ... CS");
