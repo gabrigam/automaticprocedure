@@ -59,18 +59,19 @@ public class WSRRMassiveLoaderFromFile {
 
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		nbplog.info("Batch Caricamenti Massivi V1.0 Luglio 2017");
+		nbplog.info("Started ...Batch Massive Loader WSRR SHOST - (BC) V1.0 Luglio 2017");
+		nbplog.info("URL " + args[0]);
+		nbplog.info("File Name " + args[1]);
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 
 		// check Input parameters
 		if (args.length == 0) {
 
-			System.out.println(
+			nbplog.info(
 					"----------------------------------------------------------------------------------------------------------------------");
-			System.out.println("Errore : fornire i parametri : URLBPM(0) FileInput(1)  user(2) password(3) ");
-
-			System.out.println(
+			nbplog.info("Error insert : URLBPM(0) FileInput(1)  user(2) password(3) ");
+			nbplog.info(
 					"----------------------------------------------------------------------------------------------------------------------");
 			Runtime.getRuntime().exit(0); // brutale :)
 
@@ -108,13 +109,13 @@ public class WSRRMassiveLoaderFromFile {
 						if (ssa.length() == 0)
 							ssa = input[1].substring(0, 2);
 
-						jsonBO = jsonBO.replaceAll("%NOME%", input[0]);
-						jsonBO = jsonBO.replaceAll("%ACRONIMO%", input[1]);
-						jsonBO = jsonBO.replaceAll("%SSA%", ssa);
-						jsonBO = jsonBO.replaceAll("%DESCRIZIONE%", input[3]);
-						jsonBO = jsonBO.replaceAll("%DESCRIZIONE_ESTESA%", input[3]);
-						jsonBO = jsonBO.replaceAll("%PGM_SERVIZIO%", input[4]);
-						jsonBO = jsonBO.replaceAll("%TRANS_SERVIZIO%", input[5]);
+						jsonBO = jsonBO.replace("%NOME%", input[0]);
+						jsonBO = jsonBO.replace("%ACRONIMO%", input[1]);
+						jsonBO = jsonBO.replace("%SSA%", ssa);
+						jsonBO = jsonBO.replace("%DESCRIZIONE%", input[3]);
+						jsonBO = jsonBO.replace("%DESCRIZIONE_ESTESA%", input[3]);
+						jsonBO = jsonBO.replace("%PGM_SERVIZIO%", input[4]);
+						jsonBO = jsonBO.replace("%TRANS_SERVIZIO%", input[5]);
 
 						jsonBO = URLEncoder.encode(jsonBO, "UTF-8");
 
@@ -126,7 +127,7 @@ public class WSRRMassiveLoaderFromFile {
 							responseMap = Rest.doRest("POST", action, "", headerMap, args[2], args[3], true, -1);
 
 							if (responseMap != null) {
-								nbplog.error("Result for Record # " + recNum + "---> " + responseMap.get(keycodeMessage)
+								nbplog.info("	Result for Record # " + recNum + "---> " + responseMap.get(keycodeMessage)
 										+ " - " + responseMap.get(keyResponseMessage) + " - "
 										+ responseMap.get(keyErrorMessage));
 								//Creazione Eseguita Correttamente 
@@ -143,21 +144,28 @@ public class WSRRMassiveLoaderFromFile {
 					} else {
 						nbplog.error("Record # " + recNum + " contains invalid data");
 					}
-				} catch (Exception ex) {
-					
-					nbplog.error("Record # " + recNum + " contains invalid data");
+				} catch (Exception ex) {	
+					nbplog.error("Record # " + recNum + " RunTimeError : " +ex.toString());
+					ex.printStackTrace();
 				}
 				recNum++;
 
 			}
 
 		} catch (IOException e) {
-			nbplog.error("Exception File : " + args[1] + " not exist / not redeable!");
+			nbplog.error("Exception File : " + args[1] + " not exists / not redeable!");
 			Runtime.getRuntime().exit(0);
 		}
-
-		nbplog.info("Totale Record/s Elaborati : "+(recNum-1) +" Totale Censimenti Creati : "+ok);
-		nbplog.info("Batch Caricamenti Massivi V1.0 Luglio 2017 ... CS");
+		
+		nbplog.info(
+				"----------------------------------------------------------------------------------------------------------------------");
+		int ko=(recNum-1-ok);
+		nbplog.info("Total Record/s : "+(recNum-1)) ;
+		nbplog.info("Total Object/s Created : "+ok );
+		nbplog.info("Total Record/s in Error (and Not Created) : "+ko);
+		nbplog.info(
+				"----------------------------------------------------------------------------------------------------------------------");
+		nbplog.info("Terminated ...Batch Massive Loader WSRR SHOST - (BC) V1.0 Luglio 2017... CS");
 	}
 
 	static void updateLogger(String file_name, String appender_name, String package_name) {
