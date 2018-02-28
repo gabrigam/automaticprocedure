@@ -69,7 +69,7 @@ public class SLAConsumerAndProviderPerformance {
 		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
 		log.info("11-05-2017 aggiunta la gestione della specializzazione dell' endpoint per getEndpointInfo");
 		log.info("14-05-2017 aggiunta la tracciatura dei dati di performance");
-		log.info("03-02-2018 aggiunti i campi di AV per la regola ODM");
+		log.info("03-02-2018 inserita gestione http header (da libreria di utility) per tracciatura su dynatrace");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
