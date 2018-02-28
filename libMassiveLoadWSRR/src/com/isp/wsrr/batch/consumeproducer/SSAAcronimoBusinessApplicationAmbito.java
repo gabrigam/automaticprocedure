@@ -58,6 +58,7 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 		nbplog.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		nbplog.info("120117 inserito trim matricole, check matricole non presenti od omesse , check matricole contenenti spazi");
 		nbplog.info("180117 modificate le substring per estrazione dal file matricole");
+		nbplog.info("03-02-2018 aggiunti i campi di AV per la regola ODM");
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		System.out.println("");
@@ -1226,7 +1227,6 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 
 					if (ssaNew & acronimoNew) {
 
-						// not useful but idempotent
 						result = wsrrutility.updateRelationShip(bsrURIssa, "ale63_childOrganizations", bsrURIacronimo,
 								url, user, password);
 
