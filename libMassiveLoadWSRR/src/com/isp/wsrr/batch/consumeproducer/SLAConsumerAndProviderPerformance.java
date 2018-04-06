@@ -56,7 +56,7 @@ public class SLAConsumerAndProviderPerformance {
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider & performance data V2.4 Febbraio 2018");
+		log.info("Batch SLAConsumerAndProvider & performance data V2.5 Marzo 2018");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -70,6 +70,7 @@ public class SLAConsumerAndProviderPerformance {
 		log.info("11-05-2017 aggiunta la gestione della specializzazione dell' endpoint per getEndpointInfo");
 		log.info("14-05-2017 aggiunta la tracciatura dei dati di performance");
 		log.info("03-02-2018 inserita gestione http header (da libreria di utility) per tracciatura su dynatrace");
+		log.info("24-03-2018 anche in caso di consumer non presente viene aggiornata comunque la data di ultimo utilizzo");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
@@ -235,6 +236,7 @@ public class SLAConsumerAndProviderPerformance {
 				}
 
 			}
+			log.info("(*) Last Used Date updated");
 			log.info("Batch SLAConsumerAndProviderPerformance finished..CS");
 		} catch (IOException e) {
 			log.error("Exception File : " + args[1] + " not exist / not redeable !");
@@ -1004,9 +1006,14 @@ public class SLAConsumerAndProviderPerformance {
 
 							if (bsrURIConsumer == null) {
 
+								//24032018
+								updateDate(wsrrenvelopes, wsrrutility, environment, tipology, consumer, provider, consumerVersion,
+										providerVersion, interfaceType, bind, providerInvocationTs, sldProvider, filename, recNum,
+										url, user, password);
 								error = true;
-								log.error(" record(" + recNum + ")  Error Consumer not found " + consumer.trim()
+								log.error(" record(" + recNum + ")  Error Consumer not found(*) " + consumer.trim()
 								+ " version :  " + consumerVersion.trim());
+								
 
 							} else {
 
