@@ -35,7 +35,7 @@ import com.isp.wsrr.utility.WSRRUtility;
  * 180117 modificate le substring per estrazione dal file matricole
  */
 
-public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider {
+public class SSAAcronimoBusinessApplicationAmbito { //c'era per errore extends SLAConsumerAndProvider
 
 	private static FileInputStream fis;
 	private static BufferedReader br;
@@ -53,12 +53,13 @@ public class SSAAcronimoBusinessApplicationAmbito extends SLAConsumerAndProvider
 
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		nbplog.info("Batch SSAAcronimoBusinessApplication V1.6 Gennaio  2017");
+		nbplog.info("Batch SSAAcronimoBusinessApplication V1.7 Febbraio  2018");
 		nbplog.info("aggiunti ambito e ambito descrizione per oggetti");
 		nbplog.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		nbplog.info("120117 inserito trim matricole, check matricole non presenti od omesse , check matricole contenenti spazi");
 		nbplog.info("180117 modificate le substring per estrazione dal file matricole");
 		nbplog.info("03-02-2018 aggiunti i campi di AV per la regola ODM");
+		nbplog.info("01-07-2018 classe estendeva x errore SLAConsumerAndProvider estensione tolta");
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		System.out.println("");
