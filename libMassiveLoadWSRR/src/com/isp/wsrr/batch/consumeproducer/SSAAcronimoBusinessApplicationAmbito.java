@@ -53,15 +53,15 @@ public class SSAAcronimoBusinessApplicationAmbito { //c'era per errore extends S
 
 		nbplog.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		nbplog.info("Batch SSAAcronimoBusinessApplication V1.7 Febbraio  2018");
+		nbplog.info("Batch SSAAcronimoBusinessApplication V1.8 Giugno  2018");
 		nbplog.info("aggiunti ambito e ambito descrizione per oggetti");
 		nbplog.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		nbplog.info("120117 inserito trim matricole, check matricole non presenti od omesse , check matricole contenenti spazi");
 		nbplog.info("180117 modificate le substring per estrazione dal file matricole");
 		nbplog.info("03-02-2018 aggiunti i campi di AV per la regola ODM");
-		nbplog.info("01-07-2018 classe estendeva x errore SLAConsumerAndProvider estensione tolta");
-		nbplog.info(
-				"----------------------------------------------------------------------------------------------------------------------");
+		nbplog.info("07-02-2018 classe estendeva x errore SLAConsumerAndProvider estensione tolta");
+		nbplog.info("05-06-2018 ad AV aggiunti i tre campi: gep63_CAT_SERVIZIO - gep63_CAT_INPUT - gep63_CAT_OUTPUT");
+		nbplog.info("----------------------------------------------------------------------------------------------------------------------");
 		System.out.println("");
 
 		// check Input parameters
