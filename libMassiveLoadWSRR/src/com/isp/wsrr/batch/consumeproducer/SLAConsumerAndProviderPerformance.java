@@ -56,7 +56,7 @@ public class SLAConsumerAndProviderPerformance {
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider & performance data V2.5 Marzo 2018");
+		log.info("Batch SLAConsumerAndProvider & performance data V2.6 Giugno 2018");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -71,6 +71,7 @@ public class SLAConsumerAndProviderPerformance {
 		log.info("14-05-2017 aggiunta la tracciatura dei dati di performance");
 		log.info("03-02-2018 inserita gestione http header (da libreria di utility) per tracciatura su dynatrace");
 		log.info("24-03-2018 anche in caso di consumer non presente viene aggiornata comunque la data di ultimo utilizzo");
+		log.info("06-06-2018 inserita la gestione della tipologia (C-S) canale e relativo messaggio nel log; (C-S) viene gestita come (A-S)");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
@@ -203,6 +204,8 @@ public class SLAConsumerAndProviderPerformance {
 						inputdataOk = false;
 					}
 
+					boolean onlyOne=true;
+					
 					if (inputdataOk) {
 
 						if (line != null && !line.startsWith("#")) {
@@ -212,6 +215,14 @@ public class SLAConsumerAndProviderPerformance {
 							if (!tipology.equalsIgnoreCase("DESIGNTIME")) {
 								providerInvocationTs = paramArray[6];
 							}
+							//060618
+							if (onlyOne && paramArray[0].trim().equals("C-S")) {
+								onlyOne=false;
+								log.info("--------------------------------------------------------------------------------------------------------------------");
+								log.info("Found Tipology (C-S)"); 
+								log.info("--------------------------------------------------------------------------------------------------------------------");
+							}
+								
 							Long ti = System.nanoTime();
 							slaconsumerandprovider.makeSLAConsumerAndProvider(cdb, environment.trim(), tipology.trim(),
 									paramArray[1].trim(), paramArray[3].trim(), paramArray[2].trim(),
@@ -635,7 +646,7 @@ public class SLAConsumerAndProviderPerformance {
 										}
 									}
 
-								} else { // A-S
+								} else { // A-S or C-S
 
 									// new
 									//ti = System.nanoTime();
@@ -708,7 +719,7 @@ public class SLAConsumerAndProviderPerformance {
 
 											} else {
 												log.error("record(" + recNum
-														+ ") Error on SLA creation for business application tipology A-S");
+														+ ") Error on SLA creation for business application tipology "+bind);
 											}
 										} else {
 
@@ -722,7 +733,7 @@ public class SLAConsumerAndProviderPerformance {
 												error = true;
 												log.error("record(" + recNum
 														+ ") Error on query for object application version : "
-														+ consumer + " A-S");
+														+ consumer + " "+bind);
 												log.error("error " + bsrURIApplicatioVersion.substring(12,
 														bsrURIApplicatioVersion.length()));
 
@@ -737,7 +748,7 @@ public class SLAConsumerAndProviderPerformance {
 											error = true;
 											log.error("record(" + recNum
 													+ ") error getting SLA associate to SLD for consumer : " + consumer
-													+ " sld : " + bsrURISLD + " A-S");
+													+ " sld : " + bsrURISLD + " "+bind);
 											log.error("error " + bsrURISLA_AV.substring(12, bsrURISLA_AV.length()));
 										}
 									}
@@ -1314,10 +1325,10 @@ public class SLAConsumerAndProviderPerformance {
 					&& !interfaceType.equals("MQ") && !interfaceType.equals("CALLABLE") && !interfaceType.equals("WOLA") && !interfaceType.equals("ZRES") && !interfaceType.equals("SHC"))
 				dataOk = false;
 
-			if (!bind.equals("S-S") && !bind.equals("A-S"))
+			if (!bind.equals("S-S") && !bind.equals("A-S") && !bind.equals("C-S")) //060618
 				dataOk = false;
 		}
-
+					
 		return dataOk;
 	}
 
@@ -1336,10 +1347,10 @@ public class SLAConsumerAndProviderPerformance {
 					&& !interfaceType.equals("MQ") && !interfaceType.equals("CALLABLE") && !interfaceType.equals("WOLA") && !interfaceType.equals("ZRES") && !interfaceType.equals("SHC"))
 				dataOk = false;
 
-			if (!bind.equals("S-S") && !bind.equals("A-S"))
+			if (!bind.equals("S-S") && !bind.equals("A-S") && !bind.equals("C-S")) //060618
 				dataOk = false;
 		}
-
+		
 		return dataOk;
 	}
 
