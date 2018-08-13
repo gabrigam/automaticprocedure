@@ -27,6 +27,11 @@
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
         
+        <File name="creazioneBAVCanaleAppender" fileName="caricamentiSSA.log" immediateFlush="true" append="false"
+        filePattern="creazioneBAVCanale.log" >
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        
         <File name="controllaRelazioniAppender" fileName="controllaRelazioni.log" immediateFlush="true" append="false"
         filePattern="controllaRelazioni.log" >
             <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
@@ -56,6 +61,10 @@
 
 <Logger name="com.isp.wsrr.batch.consumeproducer.SSAAcronimoBusinessApplication" level="info" additivity="false">
 <appender-ref ref="caricamentiSSAISPAppender" level="info"/>
+</Logger>
+
+<Logger name="com.isp.wsrr.batch.consumeproducer.CanaleAndBAV" level="info" additivity="false">
+<appender-ref ref="creazioneBAVCanaleAppender" level="info"/>
 </Logger>
 
 <Logger name="ControllaRelazioni" level="info" additivity="false">
