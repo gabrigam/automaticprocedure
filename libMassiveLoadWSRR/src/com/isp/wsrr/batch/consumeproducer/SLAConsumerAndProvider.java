@@ -21,7 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.isp.wsrr.envelopes.WSRREnvelopes;
-import com.isp.wsrr.utility.WSRRUtility;
+import com.isp.wsrr.utility.WSRRUtilityPerformance;
 
 public class SLAConsumerAndProvider {
 
@@ -56,7 +56,7 @@ public class SLAConsumerAndProvider {
 					"com.isp.wsrr.batch.consumeproducer.SLAConsumerAndProvider");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
-		log.info("Batch SLAConsumerAndProvider V2.3 Maggio 2017");
+		log.info("Batch SLAConsumerAndProvider V2.4 Febbraio 2018");
 		log.info("migliorata gestione file non trovato o non leggibile (1.5)");
 		log.info("22.11.2016 se DESIGNTIME non bisogna aggiorare le date");
 		log.info(
@@ -67,9 +67,9 @@ public class SLAConsumerAndProvider {
 		log.info("15.03.2017 fix per prendere le Application Version che prima scartava");
 		log.info("24-03.2017 tolta riga che generava exception (voluta) fatto su branch del 1503");
 		log.info("24-03.2017 modificato il metodo richiamato getEndpointInfo su branch del 1503 di baselib ");
-		log.info("24-04-2017 nella versione V2.1 e viene utilizzato il metodo nuovo di baselib: getSLAassociatedToSLDExtendedNew (che sostituisce String getSLAassociatedToSLDExtended)");
 		log.info("11-05-2017 aggiunta la gestione della specializzazione dell' endpoint per getEndpointInfo");
 		log.info("14-05-2017 aggiunta la tracciatura dei dati di performance");
+		log.info("03-02-2018 aggiunti i campi di AV per la regola ODM");
 		log.info(
 				"----------------------------------------------------------------------------------------------------------------------");
 		log.info("");
@@ -235,7 +235,7 @@ public class SLAConsumerAndProvider {
 				}
 
 			}
-			log.info("Batch SLAConsumerAndProvider finished..CS");
+			log.info("Batch SLAConsumerAndProviderPerformance finished..CS");
 		} catch (IOException e) {
 			log.error("Exception File : " + args[1] + " not exist / not redeable !");
 
@@ -247,7 +247,7 @@ public class SLAConsumerAndProvider {
 			String bind, String providerInvocationTs, String onlyDate, String filename, int recNum) throws Exception {
 
 		WSRREnvelopes wsrrenvelopes = new WSRREnvelopes();
-		WSRRUtility wsrrutility = new WSRRUtility();
+		WSRRUtilityPerformance wsrrutility = new WSRRUtilityPerformance();
 
 		String url = null;
 		String user = null;
@@ -342,6 +342,8 @@ public class SLAConsumerAndProvider {
 						}
 					}
 
+					//consumerCompatible = true;
+					
 					if (consumerCompatible) {
 
 						if (bsrURIConsumer != null && !bsrURIConsumer.contains(">>>***ERROR**>>>")) {
@@ -367,12 +369,12 @@ public class SLAConsumerAndProvider {
 								// defined
 
 								if (bind.equalsIgnoreCase("S-S")) {
-									ti = System.nanoTime();
-									//23052017 riporto getSLAassociatedToSLDExtended dato che quella con New è da testare bene
+									//ti = System.nanoTime();
 									bsrURISLA_SV = wsrrutility.getSLAassociatedToSLDExtended(consumer, consumerVersion, 
-											bsrURISLD, url, user, password);
-									tf = System.nanoTime();
-									SLAConsumerAndProvider.logDuration(" QUERY 6 ",ti, tf);
+											bsrURISLD, url, user, password,log);
+									// " QUERY 6 " il logging è stato spostato nella libreria
+									//tf = System.nanoTime();
+									//SLAConsumerAndProviderPerformance.logDuration(" QUERY 6 ",ti, tf);
 
 									if (bsrURISLA_SV == null) { // if null no
 										// sla
@@ -464,11 +466,13 @@ public class SLAConsumerAndProvider {
 											// if
 											// not
 											// defined
-											ti = System.nanoTime();
+											//ti = System.nanoTime();
 											bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(
-													acroName, "00", avPrimaryType, bsrURISLD, url, user, password);
-											tf = System.nanoTime();
-											SLAConsumerAndProvider.logDuration(" QUERY 11 ",ti, tf);
+													acroName, "00", avPrimaryType, bsrURISLD, url, user, password,log);
+											
+											// " QUERY 11 " il logging è stato spostato nella libreria
+											//tf = System.nanoTime();
+											//SLAConsumerAndProviderPerformance.logDuration(" QUERY 11 ",ti, tf);
 
 											if (bsrURISLA_AV == null) { // if
 												// null
@@ -631,11 +635,11 @@ public class SLAConsumerAndProvider {
 								} else { // A-S
 
 									// new
-									ti = System.nanoTime();
+									//ti = System.nanoTime();
 									bsrURISLA_AV = wsrrutility.getSLAassociatedToSLDWithPrimaryTypeExtended(consumer,
-											"00", avPrimaryType, bsrURISLD, url, user, password);
+											"00", avPrimaryType, bsrURISLD, url, user, password,log); //QUERY11
 									tf = System.nanoTime();
-									SLAConsumerAndProvider.logDuration(" QUERY 18 ",ti, tf);
+									//SLAConsumerAndProvider.logDuration(" QUERY 18 ",ti, tf);
 
 									if (bsrURISLA_AV == null) {
 										ti = System.nanoTime();
@@ -1050,7 +1054,7 @@ public class SLAConsumerAndProvider {
 
 	}//
 
-	public boolean updateDate(WSRREnvelopes wsrrenvelopes, WSRRUtility wsrrutility, String environment, String tipology,
+	public boolean updateDate(WSRREnvelopes wsrrenvelopes, WSRRUtilityPerformance wsrrutility, String environment, String tipology,
 			String consumer, String provider, String consumerVersion, String providerVersion, String interfaceType,
 			String bind, String providerInvocationTs, String sldProvider, String filename, int recNum, String url,
 			String user, String password) {
@@ -1080,7 +1084,7 @@ public class SLAConsumerAndProvider {
 
 			jsa = new JSONArray(endpointData);
 
-			bsrURIEndpoint = WSRRUtility.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), "bsrURI");
+			bsrURIEndpoint = WSRRUtilityPerformance.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), "bsrURI");
 
 			if (interfaceType.equalsIgnoreCase("MQ")) {
 
@@ -1095,9 +1099,9 @@ public class SLAConsumerAndProvider {
 
 				if (jsa != null && jsa.length() != 0) {
 
-					bsrURIEndpoint = WSRRUtility.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), "bsrURI");
+					bsrURIEndpoint = WSRRUtilityPerformance.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), "bsrURI");
 
-					firstUsedTs = WSRRUtility.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0),
+					firstUsedTs = WSRRUtilityPerformance.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0),
 							dataPrimoUtilizzo);
 
 				} else {
@@ -1111,7 +1115,7 @@ public class SLAConsumerAndProvider {
 				dataPrimoUtilizzo = "sm63_DATA_PRIMO_UTILIZZO";
 				dataUltimoUtilizzo = "sm63_DATA_ULTIMO_UTILIZZO";
 
-				firstUsedTs = WSRRUtility.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), dataPrimoUtilizzo);
+				firstUsedTs = WSRRUtilityPerformance.getObjectValueFromJSONArrayData((JSONArray) jsa.get(0), dataPrimoUtilizzo);
 			}
 
 			log.info("record(" + recNum + ") Get " + dataPrimoUtilizzo + " from endpoint :  " + bsrURIEndpoint
@@ -1183,7 +1187,7 @@ public class SLAConsumerAndProvider {
 	}
 
 	// chiamata da all
-	public boolean updateDateSLA(WSRRUtility wsrrutility, String environment, String bsrURISLA,
+	public boolean updateDateSLA(WSRRUtilityPerformance wsrrutility, String environment, String bsrURISLA,
 			String providerInvocationTs, String bind, int recNum, String url, String user, String password) {
 
 		boolean result = true;
